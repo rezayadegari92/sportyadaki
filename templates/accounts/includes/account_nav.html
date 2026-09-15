@@ -1,0 +1,10 @@
+<nav class="account-nav" aria-label="حساب کاربری">
+  <a href="{% url 'accounts:dashboard' %}"{% if active == 'dashboard' %} class="is-active" aria-current="page"{% endif %}>{% include "includes/ui_icon.html" with name="user" %}<span>حساب من</span></a>
+  <a href="{% url 'accounts:orders' %}"{% if active == 'orders' %} class="is-active" aria-current="page"{% endif %}>{% include "includes/ui_icon.html" with name="receipt" %}<span>سفارش‌ها</span></a>
+  <a href="{% url 'accounts:addresses' %}"{% if active == 'addresses' %} class="is-active" aria-current="page"{% endif %}>{% include "includes/ui_icon.html" with name="pin" %}<span>آدرس‌ها</span></a>
+  <a href="{% url 'accounts:password_change' %}"{% if active == 'password' %} class="is-active" aria-current="page"{% endif %}>{% include "includes/ui_icon.html" with name="key" %}<span>رمز عبور</span></a>
+  <form method="post" action="{% url 'accounts:logout' %}">
+    {% csrf_token %}
+    <button type="submit">{% include "includes/ui_icon.html" with name="logout" %}<span>خروج</span></button>
+  </form>
+</nav>

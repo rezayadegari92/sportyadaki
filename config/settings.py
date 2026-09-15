@@ -49,9 +49,26 @@ INSTALLED_APPS = [
     'orders',
     'articles',
     'core',
+    'cart',
+    'payments',
+    'notifications',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.PhoneBackend',  # customers: mobile number + password
+    'django.contrib.auth.backends.ModelBackend',  # staff: username + password
+]
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'accounts:dashboard'
+LOGOUT_REDIRECT_URL = 'core:home'
+
+# External services. Both default to development placeholders; when the real
+# providers are available, write a class implementing the interface in
+# payments/gateways/base.py or notifications/sms/base.py and point these
+# settings (or the environment variables) at it. Nothing else needs to change.
+PAYMENT_GATEWAY = os.environ.get('PAYMENT_GATEWAY', 'payments.gateways.placeholder.PlaceholderGateway')
+SMS_SERVICE = os.environ.get('SMS_SERVICE', 'notifications.sms.console.ConsoleSMSService')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -76,6 +93,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.site',
+                'cart.context_processors.cart',
             ],
         },
     },

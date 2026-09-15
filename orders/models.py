@@ -6,8 +6,9 @@ from core.text import normalize_iran_mobile, to_ascii_digits
 
 
 class Carrier(models.TextChoices):
-    TIPAX = 'tipax', 'تیپاکس'
     POST = 'post', 'پست ایران'
+    TIPAX = 'tipax', 'تیپاکس'
+    COURIER = 'courier', 'پیک موتوری'
 
 
 # TODO: confirm against the tracking links in the WordPress snippet.
@@ -28,34 +29,40 @@ class OrderQuerySet(models.QuerySet):
         phone = normalize_iran_mobile(phone)
         if not number.isdecimal() or not phone:
             return None
-        order = (
-            self.exclude(status=Order.Status.CHECKOUT_DRAFT)
-            .filter(pk=int(number))
-            .prefetch_related('addresses')
-            .first()
-        )
+        order = self.filter(pk=int(number)).prefetch_related('addresses').first()
         if order and any(normalize_iran_mobile(a.phone) == phone for a in order.addresses.all()):
             return order
         return None
 
 
 class Order(models.Model):
-    """WooCommerce HPOS order (`wp_wc_orders` + `wp_wc_order_operational_data`).
+    """A customer order. The primary key is the order number customers see
+    (imported WooCommerce orders keep their original id).
 
-    Imported orders keep their WooCommerce id as the primary key, because that
-    is the order number customers already have.
+    Status changes with side effects (stock, invoice, SMS) go through
+    orders.services.change_status(), never by assigning `status` directly.
     """
 
     class Status(models.TextChoices):
-        # WooCommerce stores these with a `wc-` prefix.
         PENDING = 'pending', 'در انتظار پرداخت'
-        PROCESSING = 'processing', 'در حال انجام'
-        ON_HOLD = 'on-hold', 'در انتظار بررسی'
-        COMPLETED = 'completed', 'تکمیل شده'
+        PAID = 'paid', 'پرداخت شده'
+        PROCESSING = 'processing', 'در حال آماده‌سازی'
+        SHIPPED = 'shipped', 'ارسال شده'
+        DELIVERED = 'delivered', 'تحویل شده'
         CANCELLED = 'cancelled', 'لغو شده'
-        REFUNDED = 'refunded', 'مسترد شده'
-        FAILED = 'failed', 'ناموفق'
-        CHECKOUT_DRAFT = 'checkout-draft', 'پیش‌نویس'
+        FAILED = 'failed', 'پرداخت ناموفق'
+
+    # Allowed next statuses. Cancelling is admin-only (there is no customer view for it).
+    TRANSITIONS = {
+        Status.PENDING: {Status.PAID, Status.FAILED, Status.CANCELLED},
+        Status.FAILED: {Status.PENDING, Status.PAID, Status.CANCELLED},
+        Status.PAID: {Status.PROCESSING, Status.CANCELLED},
+        Status.PROCESSING: {Status.SHIPPED, Status.CANCELLED},
+        Status.SHIPPED: {Status.DELIVERED, Status.CANCELLED},
+        Status.DELIVERED: set(),
+        Status.CANCELLED: set(),
+    }
+    PAID_STATUSES = {Status.PAID, Status.PROCESSING, Status.SHIPPED, Status.DELIVERED}
 
     status = models.CharField('وضعیت', max_length=20, choices=Status, default=Status.PENDING, db_index=True)
     currency = models.CharField('واحد پول', max_length=10, default='IRT')
@@ -65,21 +72,26 @@ class Order(models.Model):
     )
     billing_email = models.EmailField('ایمیل', blank=True)
     customer_note = models.TextField('یادداشت مشتری', blank=True)
+    staff_note = models.TextField('یادداشت داخلی', blank=True, help_text='فقط برای مدیران نمایش داده می‌شود.')
 
-    total_amount = models.DecimalField('مبلغ کل', max_digits=15, decimal_places=2, default=0)
-    tax_amount = models.DecimalField('مالیات', max_digits=15, decimal_places=2, default=0)
+    subtotal_amount = models.DecimalField('جمع کالاها', max_digits=15, decimal_places=2, default=0)
     shipping_total = models.DecimalField('هزینه ارسال', max_digits=15, decimal_places=2, default=0)
     shipping_tax = models.DecimalField('مالیات ارسال', max_digits=15, decimal_places=2, default=0)
     discount_total = models.DecimalField('تخفیف', max_digits=15, decimal_places=2, default=0)
     discount_tax = models.DecimalField('مالیات تخفیف', max_digits=15, decimal_places=2, default=0)
+    tax_amount = models.DecimalField('مالیات', max_digits=15, decimal_places=2, default=0)
+    total_amount = models.DecimalField('مبلغ کل', max_digits=15, decimal_places=2, default=0)
 
     payment_method = models.CharField('روش پرداخت', max_length=100, blank=True)
     payment_method_title = models.CharField('عنوان روش پرداخت', max_length=200, blank=True)
     transaction_id = models.CharField('شناسه تراکنش', max_length=100, blank=True)
 
-    # Previously the `_syt_carrier` / `_syt_tracking_code` order meta.
-    carrier = models.CharField('شرکت حمل', max_length=20, choices=Carrier, blank=True)
-    tracking_code = models.CharField('کد رهگیری', max_length=100, blank=True)
+    # Filled in by staff; shown to the customer once set.
+    carrier = models.CharField('روش / شرکت ارسال', max_length=20, choices=Carrier, blank=True)
+    tracking_code = models.CharField('کد رهگیری مرسوله', max_length=100, blank=True)
+
+    # Set when stock was deducted for this order, so it happens (and is undone) once.
+    stock_deducted = models.BooleanField('کسر از موجودی', default=False, editable=False)
 
     created_via = models.CharField('ایجاد از طریق', max_length=100, blank=True)
     order_key = models.CharField('کلید سفارش', max_length=100, blank=True)
@@ -89,7 +101,9 @@ class Order(models.Model):
     created_at = models.DateTimeField('تاریخ ثبت', default=timezone.now, db_index=True)
     updated_at = models.DateTimeField('آخرین ویرایش', auto_now=True)
     paid_at = models.DateTimeField('تاریخ پرداخت', null=True, blank=True)
-    completed_at = models.DateTimeField('تاریخ تکمیل', null=True, blank=True)
+    shipped_at = models.DateTimeField('تاریخ ارسال', null=True, blank=True)
+    completed_at = models.DateTimeField('تاریخ تحویل', null=True, blank=True)
+    cancelled_at = models.DateTimeField('تاریخ لغو', null=True, blank=True)
 
     objects = OrderQuerySet.as_manager()
 
@@ -101,13 +115,38 @@ class Order(models.Model):
     def __str__(self):
         return f'سفارش #{self.pk}'
 
+    def can_transition_to(self, status):
+        return status in self.TRANSITIONS.get(self.status, set())
+
+    @property
+    def is_paid(self):
+        return self.status in self.PAID_STATUSES
+
     @property
     def tracking_url(self):
         return CARRIER_TRACKING_URLS.get(self.carrier, '')
 
+    @property
+    def progress_steps(self):
+        """Fulfilment steps for a progress bar; empty for unpaid, failed or cancelled orders."""
+        flow = [self.Status.PAID, self.Status.PROCESSING, self.Status.SHIPPED, self.Status.DELIVERED]
+        if self.status not in flow:
+            return []
+        reached = flow.index(self.status)
+        return [
+            {'label': status.label, 'done': index <= reached, 'current': index == reached}
+            for index, status in enumerate(flow)
+        ]
+
+    @property
+    def shipping_address(self):
+        addresses = {address.address_type: address for address in self.addresses.all()}
+        return addresses.get(OrderAddress.AddressType.SHIPPING) or addresses.get(OrderAddress.AddressType.BILLING)
+
 
 class OrderAddress(models.Model):
-    """`wp_wc_order_addresses` — one billing and one shipping row per order."""
+    """`wp_wc_order_addresses` — one billing and one shipping row per order.
+    A snapshot: later edits to the customer's saved address don't change it."""
 
     class AddressType(models.TextChoices):
         BILLING = 'billing', 'صورتحساب'
@@ -137,13 +176,14 @@ class OrderAddress(models.Model):
     def __str__(self):
         return f'{self.get_address_type_display()} — {self.first_name} {self.last_name}'.strip()
 
+    @property
+    def full_name(self):
+        return f'{self.first_name} {self.last_name}'.strip()
+
 
 class OrderItem(models.Model):
-    """A product line (`wp_woocommerce_order_items` of type `line_item`).
-
-    Name and SKU are copied at purchase time so the order still reads correctly
-    after the product is edited or deleted.
-    """
+    """A product line. Name, SKU and prices are copied at purchase time so the
+    order still reads correctly after the product is edited or deleted."""
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name='سفارش')
     product = models.ForeignKey(
@@ -153,6 +193,7 @@ class OrderItem(models.Model):
     name = models.CharField('نام محصول', max_length=255)
     sku = models.CharField('شناسه (SKU)', max_length=100, blank=True)
     quantity = models.PositiveIntegerField('تعداد', default=1)
+    unit_price = models.DecimalField('قیمت واحد', max_digits=15, decimal_places=2, default=0)
     subtotal = models.DecimalField('جمع قبل از تخفیف', max_digits=15, decimal_places=2, default=0)
     subtotal_tax = models.DecimalField('مالیات قبل از تخفیف', max_digits=15, decimal_places=2, default=0)
     total = models.DecimalField('جمع', max_digits=15, decimal_places=2, default=0)
@@ -165,3 +206,35 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f'{self.name} × {self.quantity}'
+
+
+class Invoice(models.Model):
+    """Issued when an order is paid. Amounts and customer details are copied
+    from the order, so the invoice doesn't change if the order is edited."""
+
+    order = models.OneToOneField(Order, on_delete=models.PROTECT, related_name='invoice', verbose_name='سفارش')
+    number = models.CharField('شماره فاکتور', max_length=30, unique=True, editable=False)
+    issued_at = models.DateTimeField('تاریخ صدور', default=timezone.now)
+    customer_name = models.CharField('نام خریدار', max_length=200)
+    customer_phone = models.CharField('موبایل خریدار', max_length=20)
+    billing_address = models.TextField('نشانی', blank=True)
+    subtotal = models.DecimalField('جمع کالاها', max_digits=15, decimal_places=2)
+    shipping = models.DecimalField('هزینه ارسال', max_digits=15, decimal_places=2)
+    discount = models.DecimalField('تخفیف', max_digits=15, decimal_places=2, default=0)
+    tax_rate = models.DecimalField('نرخ مالیات (درصد)', max_digits=5, decimal_places=2, default=0)
+    tax = models.DecimalField('مالیات', max_digits=15, decimal_places=2, default=0)
+    total = models.DecimalField('مبلغ قابل پرداخت', max_digits=15, decimal_places=2)
+
+    class Meta:
+        ordering = ['-issued_at']
+        verbose_name = 'فاکتور'
+        verbose_name_plural = 'فاکتورها'
+
+    def __str__(self):
+        return self.number
+
+    def save(self, *args, **kwargs):
+        # One invoice per order, so the order id keeps numbers unique without a counter.
+        if not self.number:
+            self.number = f'INV-{self.issued_at:%Y}-{self.order_id:06d}'
+        super().save(*args, **kwargs)

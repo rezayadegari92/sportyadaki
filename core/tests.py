@@ -51,6 +51,19 @@ class SiteSettingsTests(TestCase):
 
 
 class HomePageTests(TestCase):
+    def test_no_template_comment_leaks_into_the_page(self):
+        # {# #} only works on one line; a multi-line one is printed as text, and a
+        # tag name inside it (e.g. <dialog>) gets parsed and swallows what follows.
+        self.assertNotContains(self.client.get(reverse('core:home')), '{#')
+
+    def test_tab_bar_marks_the_current_page(self):
+        home = self.client.get(reverse('core:home'))
+        self.assertContains(home, 'tabbar__item is-active', count=1)
+        self.assertContains(home, f'class="tabbar__item is-active" href="{reverse("core:home")}"')
+        sport = self.client.get(reverse('catalog:sport'))
+        self.assertContains(sport, f'class="tabbar__item is-active" href="{reverse("catalog:sport")}"')
+        self.assertContains(sport, 'id="contact-sheet"')
+
     def test_empty_site_hides_empty_sections(self):
         response = self.client.get(reverse('core:home'))
         self.assertEqual(response.status_code, 200)
@@ -128,7 +141,9 @@ class AdminPanelTests(TestCase):
         self.assertContains(response, 'محصولات منتشرشده')
         self.assertContains(response, 'علی رضایی')
         self.assertContains(response, '۱٬۵۰۰٬۰۰۰')
-        self.assertEqual([app['app_label'] for app in response.context['app_list']][:3], ['orders', 'catalog', 'articles'])
+        self.assertEqual(
+            [app['app_label'] for app in response.context['app_list']][:4], ['orders', 'payments', 'cart', 'catalog'],
+        )
 
     def test_dashboard_respects_permissions(self):
         staff = get_user_model().objects.create_user('staff', password='x', is_staff=True)

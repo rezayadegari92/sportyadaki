@@ -79,8 +79,28 @@
       {# Product HTML is written by staff in the admin (or imported from WordPress). #}
       {% if product.short_description %}<div class="prose">{{ product.short_description|safe }}</div>{% endif %}
 
+      {% if can_buy %}
+        <form class="buy-box" id="buy-form" method="post" action="{% url 'cart:add' product.pk %}">
+          {% csrf_token %}
+          <div class="buy-box__row">
+            <div class="qty qty--input">
+              <button type="button" class="qty__btn" data-qty-step="1" aria-label="افزودن یک عدد">{% include "includes/ui_icon.html" with name="plus" %}</button>
+              <label class="visually-hidden" for="buy-quantity">تعداد</label>
+              <input class="qty__input" id="buy-quantity" name="quantity" type="number" inputmode="numeric" min="1"{% if max_quantity %} max="{{ max_quantity }}"{% endif %} value="1">
+              <button type="button" class="qty__btn" data-qty-step="-1" aria-label="کم کردن یک عدد"><span aria-hidden="true">−</span></button>
+            </div>
+            <button type="submit" class="btn btn--primary btn--lg buy-box__submit">{% include "includes/ui_icon.html" with name="cart" %}افزودن به سبد خرید</button>
+          </div>
+          {% if max_quantity and max_quantity <= 5 %}<p class="buy-box__stock">فقط {{ max_quantity|fa_digits }} عدد در انبار باقی است.</p>{% endif %}
+        </form>
+        {# Phones: price and add-to-cart stay within thumb reach. #}
+        <div class="sticky-cta">
+          <div class="sticky-cta__total">{% include "includes/price.html" %}</div>
+          <button type="submit" form="buy-form" class="btn btn--primary btn--lg">{% include "includes/ui_icon.html" with name="cart" %}افزودن به سبد</button>
+        </div>
+      {% endif %}
       <div class="order-cta">
-        <p>برای ثبت سفارش و استعلام موجودی با ما در تماس باشید:</p>
+        <p>{% if can_buy %}سوالی درباره این قطعه دارید؟ با ما در تماس باشید:{% else %}برای استعلام موجودی و سفارش با ما در تماس باشید:{% endif %}</p>
         {% include "includes/contact_buttons.html" %}
       </div>
     </div>

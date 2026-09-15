@@ -1,7 +1,7 @@
 {% load sporty %}<a class="card product-card" href="{{ product.get_absolute_url }}">
-  <div class="product-card__media">
+  <div class="product-card__media media">
     {% if product.image %}
-      <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+      <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" data-fade>
     {% else %}
       {% include "includes/placeholder.html" %}
     {% endif %}

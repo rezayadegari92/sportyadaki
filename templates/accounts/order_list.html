@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}سفارش‌های من | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="account-head account-head--simple"><h1 class="page-title">سفارش‌های من</h1></div>
+
+  <div class="account-layout">
+    {% include "accounts/includes/account_nav.html" with active='orders' %}
+    <div class="account-main">
+      {% if page.object_list %}
+        <div class="panel order-rows">
+          {% for order in page.object_list %}{% include "accounts/includes/order_row.html" %}{% endfor %}
+        </div>
+        {% include "includes/pagination.html" %}
+      {% else %}
+        <div class="empty empty--icon">
+          <span class="empty__icon">{% include "includes/ui_icon.html" with name="receipt" %}</span>
+          <p>هنوز سفارشی ثبت نکرده‌اید.</p>
+          <a class="btn btn--primary" href="{% url 'catalog:sport' %}">شروع خرید</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

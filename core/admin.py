@@ -6,6 +6,17 @@ from .models import HeroBanner, Page, SiteSettings
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
+    fieldsets = (
+        ('عمومی', {'fields': ('logo', 'phone', 'bale_username', 'eitaa_username')}),
+        ('ارسال و مالیات', {
+            'description': (
+                'هزینه ارسال برای همه سفارش‌ها یکسان است. اگر هر یک از شرط‌های ارسال رایگان برقرار باشد، '
+                'ارسال رایگان می‌شود. تغییرات روی سفارش‌هایی که از این پس ثبت می‌شوند اعمال می‌شود.'
+            ),
+            'fields': ('shipping_cost', 'free_shipping_min_items', 'free_shipping_min_amount', 'tax_rate'),
+        }),
+    )
+
     def has_add_permission(self, request):
         return not SiteSettings.objects.exists()
 

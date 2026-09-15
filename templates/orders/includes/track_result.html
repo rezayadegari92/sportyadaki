@@ -1,0 +1,17 @@
+{% load sporty %}<div class="track-result" data-track-result aria-live="polite">
+  {% if throttled %}
+    <p class="notice notice--error">تعداد تلاش‌ها زیاد بود. لطفاً چند دقیقه بعد دوباره امتحان کنید.</p>
+  {% elif searched and not order %}
+    <p class="notice notice--error">سفارشی با این شماره سفارش و موبایل پیدا نشد. لطفاً اطلاعات را بررسی کنید.</p>
+  {% elif order %}
+    {# Only status and shipping details: no names, addresses or amounts on this public page. #}
+    <div class="track-card">
+      <div class="track-card__head">
+        <div><span class="meta">سفارش</span> <strong>#{{ order.pk|fa_digits }}</strong></div>
+        <span class="status status--{{ order.status }}">{{ order.get_status_display }}</span>
+      </div>
+      {% include "orders/includes/progress.html" %}
+      {% include "orders/includes/shipment.html" %}
+    </div>
+  {% endif %}
+</div>

@@ -9,16 +9,18 @@
   {% endif %}
 
   {% if car_brands %}
-  <section class="section" id="brands" aria-labelledby="brands-title">
+  <section class="section" id="brands" aria-labelledby="brands-title" data-reveal>
     <div class="section__head">
-      <h2 class="section__title" id="brands-title">برندهای خودرو</h2>
+      <h2 class="section__title" id="brands-title">
+        <span class="section__icon">{% include "includes/ui_icon.html" with name="car" %}</span>برندهای خودرو
+      </h2>
     </div>
     <div class="rail brand-rail">
       {% for brand in car_brands %}
         <a class="brand-tile" href="{{ brand.get_absolute_url }}">
-          <span class="brand-tile__logo">
+          <span class="brand-tile__logo media">
             {% if brand.image %}
-              <img src="{{ brand.image.url }}" alt="" loading="lazy">
+              <img src="{{ brand.image.url }}" alt="" loading="lazy" data-fade>
             {% else %}
               <span class="brand-tile__initial" aria-hidden="true">{{ brand.name|first }}</span>
             {% endif %}
@@ -49,9 +51,10 @@
   </section>
 
   {% if sale_products %}
-  <section class="section offers" id="offers" aria-labelledby="offers-title">
+  <section class="section offers" id="offers" aria-labelledby="offers-title" data-reveal>
     <div class="offers__intro">
-      <div>
+      <span class="offers__icon">{% include "includes/ui_icon.html" with name="tag" %}</span>
+      <div class="offers__text">
         <h2 class="offers__title" id="offers-title">پیشنهادهای ویژه</h2>
         <p class="offers__lead">تخفیف‌های محدود روی لوازم یدکی و اسپرت</p>
       </div>
@@ -64,13 +67,15 @@
   {% endif %}
 
   {% if middle_banner %}
-    {% include "includes/banner.html" with banner=middle_banner compact=True %}
+    {% include "includes/banner.html" with banner=middle_banner compact=True reveal=True %}
   {% endif %}
 
   {% if popular_products %}
-  <section class="section" aria-labelledby="popular-title">
+  <section class="section" aria-labelledby="popular-title" data-reveal>
     <div class="section__head">
-      <h2 class="section__title" id="popular-title">محبوب‌ترین محصولات</h2>
+      <h2 class="section__title" id="popular-title">
+        <span class="section__icon">{% include "includes/ui_icon.html" with name="flame" %}</span>محبوب‌ترین محصولات
+      </h2>
       {% include "includes/rail_nav.html" with target="popular-rail" %}
     </div>
     <div class="rail" id="popular-rail">
@@ -80,10 +85,12 @@
   {% endif %}
 
   {% if articles %}
-  <section class="section" aria-labelledby="articles-title">
+  <section class="section" aria-labelledby="articles-title" data-reveal>
     <div class="section__head">
-      <h2 class="section__title" id="articles-title">آخرین مقالات</h2>
-      <a class="section__more" href="{% url 'articles:list' %}">همه مقالات</a>
+      <h2 class="section__title" id="articles-title">
+        <span class="section__icon">{% include "includes/ui_icon.html" with name="book" %}</span>آخرین مقالات
+      </h2>
+      <a class="section__more" href="{% url 'articles:list' %}">همه مقالات{% include "includes/ui_icon.html" with name="chevron" %}</a>
       {% include "includes/rail_nav.html" with target="articles-rail" %}
     </div>
     <div class="rail article-rail" id="articles-rail">
@@ -93,4 +100,24 @@
   {% endif %}
 
 </div>
+
+{% comment %}
+  Order tracking without login: floating button → sheet with the lookup form.
+  Without dialog support the link opens the full tracking page.
+{% endcomment %}
+<a class="fab" href="{% url 'orders:track' %}" data-sheet-open="track-sheet">
+  {% include "includes/ui_icon.html" with name="truck" %}<span class="fab__label">پیگیری سفارش</span>
+</a>
+<dialog class="sheet" id="track-sheet" aria-labelledby="track-sheet-title">
+  <div class="sheet__body">
+    <div class="sheet__handle" aria-hidden="true"></div>
+    <div class="sheet__head">
+      <h2 class="sheet__title" id="track-sheet-title" tabindex="-1" autofocus>پیگیری سفارش</h2>
+      <button type="button" class="icon-btn" data-sheet-close aria-label="بستن">{% include "includes/ui_icon.html" with name="x" %}</button>
+    </div>
+    <p class="sheet__lead">شماره سفارش و موبایلی را که هنگام خرید وارد کردید بنویسید.</p>
+    {% include "orders/includes/track_form.html" with prefix="sheet" %}
+    <div class="track-result" data-track-result aria-live="polite"></div>
+  </div>
+</dialog>
 {% endblock %}

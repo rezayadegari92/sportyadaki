@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load sporty %}
+
+{% block title %}آدرس‌ها | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="account-head account-head--simple">
+    <h1 class="page-title">آدرس‌های من</h1>
+    <a class="btn btn--primary" href="{% url 'accounts:address_create' %}">{% include "includes/ui_icon.html" with name="plus" %}آدرس جدید</a>
+  </div>
+
+  <div class="account-layout">
+    {% include "accounts/includes/account_nav.html" with active='addresses' %}
+    <div class="account-main">
+      {% if addresses %}
+        <div class="address-cards">
+          {% for address in addresses %}
+            <article class="panel address-card{% if address.is_default %} is-default{% endif %}">
+              <div class="address-card__head">
+                <h2 class="address-card__title">{% include "includes/ui_icon.html" with name="pin" %}{{ address.title }}</h2>
+                {% if address.is_default %}<span class="status status--delivered">پیش‌فرض</span>{% endif %}
+              </div>
+              <p>{{ address.full_address|fa_digits }}</p>
+              <p class="meta">{{ address.recipient_name }} · <bdi>{{ address.recipient_phone|fa_digits }}</bdi> · کد پستی <bdi>{{ address.postal_code|fa_digits }}</bdi></p>
+              <div class="address-card__actions">
+                <a class="link-btn" href="{% url 'accounts:address_edit' address.pk %}">ویرایش</a>
+                {% if not address.is_default %}
+                  <form method="post" action="{% url 'accounts:address_default' address.pk %}">{% csrf_token %}<button type="submit" class="link-btn">انتخاب به‌عنوان پیش‌فرض</button></form>
+                {% endif %}
+                <form method="post" action="{% url 'accounts:address_delete' address.pk %}" data-confirm="این آدرس حذف شود؟">
+                  {% csrf_token %}<button type="submit" class="link-btn link-btn--danger">حذف</button>
+                </form>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty empty--icon">
+          <span class="empty__icon">{% include "includes/ui_icon.html" with name="pin" %}</span>
+          <p>هنوز آدرسی ذخیره نکرده‌اید.</p>
+          <a class="btn btn--primary" href="{% url 'accounts:address_create' %}">افزودن آدرس</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

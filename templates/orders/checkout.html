@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load sporty %}
+
+{% block title %}تکمیل خرید | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% include "orders/includes/checkout_steps.html" with step=2 %}
+  <h1 class="page-title page-title--spaced">اطلاعات ارسال</h1>
+
+  {% with addresses=form.address.field.queryset %}
+  <form method="post" class="checkout-layout" id="checkout-form">
+    {% csrf_token %}
+    <section class="checkout-main">
+      <div class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">{% include "includes/ui_icon.html" with name="pin" %}آدرس ارسال</h2>
+          {% if addresses %}
+            <a class="link-btn" href="{% url 'accounts:address_create' %}?next={{ request.path|urlencode }}">{% include "includes/ui_icon.html" with name="plus" %}آدرس جدید</a>
+          {% endif %}
+        </div>
+        {% if addresses %}
+          <div class="choice-list">
+            {% for address in addresses %}
+              <label class="choice">
+                <input type="radio" name="address" value="{{ address.pk }}" required
+                       {% if form.address.value|stringformat:'s' == address.pk|stringformat:'s' %}checked{% endif %}>
+                <span class="choice__body">
+                  <strong>{{ address.title }}</strong>
+                  <span>{{ address.full_address|fa_digits }}</span>
+                  <span class="meta">{{ address.recipient_name }} · <bdi>{{ address.recipient_phone|fa_digits }}</bdi> · کد پستی <bdi>{{ address.postal_code|fa_digits }}</bdi></span>
+                </span>
+              </label>
+            {% endfor %}
+          </div>
+          {% for error in form.address.errors %}<p class="field__error" role="alert">{{ error }}</p>{% endfor %}
+        {% else %}
+          <div class="empty empty--compact">
+            <p>برای ارسال سفارش، یک آدرس اضافه کنید.</p>
+            <a class="btn btn--primary" href="{% url 'accounts:address_create' %}?next={{ request.path|urlencode }}">{% include "includes/ui_icon.html" with name="plus" %}افزودن آدرس</a>
+          </div>
+        {% endif %}
+      </div>
+      <div class="panel">{% include "includes/form_field.html" with field=form.note %}</div>
+    </section>
+
+    <aside class="panel summary" aria-labelledby="summary-title">
+      <h2 class="summary__title" id="summary-title">سفارش شما</h2>
+      <ul class="summary__items">
+        {% for item in items %}
+          <li><span>{{ item.product.name }} <small class="meta">× {{ item.quantity|fa_digits }}</small></span><span>{{ item.line_total|fa_number }}</span></li>
+        {% endfor %}
+      </ul>
+      {% include "includes/order_totals.html" with subtotal=totals.subtotal shipping=totals.shipping tax=totals.tax total=totals.total %}
+      <button type="submit" class="btn btn--primary btn--lg btn--block summary__cta"{% if not addresses %} disabled{% endif %}>
+        {% include "includes/ui_icon.html" with name="lock" %}پرداخت و ثبت سفارش
+      </button>
+      <p class="summary__secure">پرداخت از طریق درگاه امن بانکی انجام می‌شود.</p>
+    </aside>
+
+    <div class="sticky-cta">
+      <div class="sticky-cta__total"><span class="meta">مبلغ قابل پرداخت</span><strong>{{ totals.total|fa_number }} <small>تومان</small></strong></div>
+      <button type="submit" class="btn btn--primary btn--lg"{% if not addresses %} disabled{% endif %}>پرداخت</button>
+    </div>
+  </form>
+  {% endwith %}
+</div>
+{% endblock %}

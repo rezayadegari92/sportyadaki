@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}{% if address %}ویرایش آدرس{% else %}آدرس جدید{% endif %} | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="account-head account-head--simple">
+    <h1 class="page-title">{% if address %}ویرایش آدرس{% else %}آدرس جدید{% endif %}</h1>
+  </div>
+
+  <div class="account-layout">
+    {% include "accounts/includes/account_nav.html" with active='addresses' %}
+    <div class="account-main">
+      <form method="post" class="panel form-stack">
+        {% csrf_token %}
+        {% include "includes/form_errors.html" %}
+        {% include "includes/form_field.html" with field=form.title %}
+        <div class="form-row">
+          {% include "includes/form_field.html" with field=form.recipient_name %}
+          {% include "includes/form_field.html" with field=form.recipient_phone %}
+        </div>
+        <div class="form-row">
+          {% include "includes/form_field.html" with field=form.province %}
+          {% include "includes/form_field.html" with field=form.city %}
+        </div>
+        {% include "includes/form_field.html" with field=form.street %}
+        <div class="form-row form-row--3">
+          {% include "includes/form_field.html" with field=form.plaque %}
+          {% include "includes/form_field.html" with field=form.unit %}
+          {% include "includes/form_field.html" with field=form.postal_code %}
+        </div>
+        {% include "includes/form_field.html" with field=form.is_default %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary btn--lg">ذخیره آدرس</button>
+          <a class="btn btn--outline btn--lg" href="{{ next|default:'/account/addresses/' }}">انصراف</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

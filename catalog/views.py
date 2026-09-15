@@ -6,6 +6,8 @@ from django.db.models import Count, F, Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from cart.services import available_quantity
+
 from .models import CarBrand, CarModel, PartBrand, Product, ProductRating
 
 PAGE_SIZE = 24
@@ -27,8 +29,11 @@ def product_detail(request, slug):
         .values_list('stars', flat=True)
         .first()
     )
+    available = available_quantity(product)
     return render(request, 'catalog/product_detail.html', {
         'product': product,
+        'can_buy': available != 0,
+        'max_quantity': available,  # None: no stock limit
         'car_models': product.car_models.select_related('brand'),
         'user_rating': user_rating,
         # Highest first: the star widget lays them out with row-reverse.

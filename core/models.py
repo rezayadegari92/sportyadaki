@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 
 
@@ -11,6 +13,24 @@ class SiteSettings(models.Model):
     phone = models.CharField('موبایل', max_length=20, default='09391098198')
     bale_username = models.CharField('نام کاربری بله', max_length=100, blank=True, default='Sportyadaki')
     eitaa_username = models.CharField('نام کاربری ایتا', max_length=100, blank=True, default='sportyadaki')
+
+    # Shipping and tax, editable any time; applied to orders placed afterwards.
+    shipping_cost = models.DecimalField(
+        'هزینه ارسال (تومان)', max_digits=12, decimal_places=0, default=0,
+        help_text='مبلغ ثابت ارسال که برای همه سفارش‌ها یکسان است.',
+    )
+    free_shipping_min_items = models.PositiveIntegerField(
+        'ارسال رایگان از تعداد کالا', null=True, blank=True,
+        help_text='اگر تعداد کالاهای سبد به این عدد برسد، ارسال رایگان است. خالی یعنی غیرفعال.',
+    )
+    free_shipping_min_amount = models.DecimalField(
+        'ارسال رایگان از مبلغ سفارش (تومان)', max_digits=15, decimal_places=0, null=True, blank=True,
+        help_text='اگر جمع کالاها به این مبلغ برسد، ارسال رایگان است. خالی یعنی غیرفعال.',
+    )
+    tax_rate = models.DecimalField(
+        'نرخ مالیات (درصد)', max_digits=5, decimal_places=2, default=0,
+        help_text='روی جمع کالاها محاسبه و به مبلغ سفارش اضافه می‌شود. ۰ یعنی بدون مالیات.',
+    )
 
     class Meta:
         verbose_name = 'تنظیمات سایت'
@@ -27,6 +47,14 @@ class SiteSettings(models.Model):
     def load(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+    def shipping_cost_for(self, item_count, subtotal):
+        """Fixed shipping cost, or zero when either free-shipping threshold is met."""
+        if self.free_shipping_min_items and item_count >= self.free_shipping_min_items:
+            return Decimal(0)
+        if self.free_shipping_min_amount is not None and subtotal >= self.free_shipping_min_amount:
+            return Decimal(0)
+        return self.shipping_cost
 
     @property
     def bale_url(self):

@@ -5,8 +5,8 @@ from .templatetags.sporty import fa_decimal, fa_number
 from .text import to_persian_digits
 
 ORDER_STATUS_TONES = {
-    'pending': 'gray', 'processing': 'blue', 'on-hold': 'orange', 'completed': 'green',
-    'cancelled': 'red', 'refunded': 'navy', 'failed': 'red', 'checkout-draft': 'gray',
+    'pending': 'gray', 'paid': 'navy', 'processing': 'blue', 'shipped': 'orange',
+    'delivered': 'green', 'cancelled': 'red', 'failed': 'red',
 }
 
 

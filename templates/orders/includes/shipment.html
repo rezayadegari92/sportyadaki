@@ -1,0 +1,15 @@
+{% load sporty %}{% if order.carrier or order.tracking_code %}
+<div class="shipment">
+  <dl class="shipment__info">
+    {% if order.carrier %}<div><dt>روش ارسال</dt><dd>{{ order.get_carrier_display }}</dd></div>{% endif %}
+    {% if order.tracking_code %}<div><dt>کد رهگیری</dt><dd><bdi class="shipment__code">{{ order.tracking_code }}</bdi></dd></div>{% endif %}
+  </dl>
+  {% if order.tracking_url %}
+    <a class="btn btn--outline btn--block" href="{{ order.tracking_url }}" target="_blank" rel="noopener">
+      {% include "includes/ui_icon.html" with name="truck" %}پیگیری در سایت {{ order.get_carrier_display }}
+    </a>
+  {% endif %}
+</div>
+{% elif order.is_paid %}
+<p class="meta shipment__pending">{% include "includes/ui_icon.html" with name="truck" %}روش ارسال و کد رهگیری پس از ارسال مرسوله در همین‌جا نمایش داده می‌شود.</p>
+{% endif %}

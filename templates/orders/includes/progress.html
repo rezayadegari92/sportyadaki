@@ -1,0 +1,10 @@
+{% with steps=order.progress_steps %}{% if steps %}
+<ol class="progress" aria-label="مراحل سفارش">
+  {% for step in steps %}
+    <li class="progress__step{% if step.done %} is-done{% endif %}{% if step.current %} is-current{% endif %}"{% if step.current %} aria-current="step"{% endif %}>
+      <span class="progress__dot" aria-hidden="true"></span>
+      <span class="progress__label">{{ step.label }}</span>
+    </li>
+  {% endfor %}
+</ol>
+{% endif %}{% endwith %}

@@ -10,9 +10,10 @@ from django.contrib.admin.apps import AdminConfig
 from django.urls import reverse
 from django.utils import timezone
 
-APP_ORDER = ['orders', 'catalog', 'articles', 'core', 'accounts', 'auth']
+APP_ORDER = ['orders', 'payments', 'cart', 'catalog', 'articles', 'core', 'accounts', 'auth']
 MODEL_ORDER = [
-    'Order', 'Product', 'ProductRating', 'CarBrand', 'CarModel', 'PartBrand', 'ProductCategory',
+    'Order', 'Invoice', 'Payment', 'Cart',
+    'Product', 'ProductRating', 'CarBrand', 'CarModel', 'PartBrand', 'ProductCategory',
     'Article', 'ArticleCategory', 'HeroBanner', 'SiteSettings', 'Page',
 ]
 
@@ -68,12 +69,13 @@ def dashboard(request):
 
     recent_orders = None
     if user.has_perm('orders.view_order'):
+        # Paid orders are waiting to be prepared: the queue staff should act on.
         cards.append({
-            'label': 'سفارش‌های در حال انجام',
-            'value': Order.objects.filter(status=Order.Status.PROCESSING).count(),
-            'url': f'{changelist(Order)}?status__exact=processing', 'tone': 'green', 'icon': 'cart',
+            'label': 'سفارش‌های پرداخت‌شده (در انتظار آماده‌سازی)',
+            'value': Order.objects.filter(status=Order.Status.PAID).count(),
+            'url': f'{changelist(Order)}?status__exact=paid', 'tone': 'green', 'icon': 'cart',
         })
-        orders = Order.objects.exclude(status=Order.Status.CHECKOUT_DRAFT).prefetch_related('addresses')[:6]
+        orders = Order.objects.prefetch_related('addresses')[:6]
         recent_orders = [
             {'order': order, 'name': order_customer_name(order),
              'tone': ORDER_STATUS_TONES.get(order.status, 'gray'),

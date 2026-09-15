@@ -19,7 +19,7 @@ HOME_HIGHLIGHTS = [
 
 
 def home(request):
-    banners = HeroBanner.objects.filter(is_active=True)
+    banners = HeroBanner.objects.filter(is_active=True).prefetch_related('extra_images')
     products = (
         Product.objects.published()
         .exclude(stock_status=Product.StockStatus.OUT_OF_STOCK)

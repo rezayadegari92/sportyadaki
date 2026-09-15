@@ -383,7 +383,21 @@ a.chip:hover, a.chip:active { background: var(--accent); color: #fff; }
 }
 .hero--compact { min-height: clamp(190px, 26vw, 300px); align-items: center; }
 .hero__img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; }
+/* No z-index of its own (position only): its children stack directly in
+   .hero's context, so .hero__dots isn't trapped behind the -2 image layer. */
+.hero__slideshow { position: absolute; inset: 0; width: 100%; height: 100%; }
 .hero::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(to top, rgb(10 11 14 / .85), rgb(10 11 14 / .2) 70%); }
+
+/* Hero slideshow: slides crossfade, one .is-active at a time (site.js). The
+   first slide is active by default so it works before JS runs. All slides
+   share the image's usual -2 stacking slot (below the gradient/content);
+   ordinary opacity crossfading between two opaque photos needs no z-index. */
+.hero__slideshow img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.1s ease; }
+.hero__slideshow img.is-active { opacity: 1; }
+.hero__dots { position: absolute; z-index: 2; inset-inline: 0; bottom: var(--space-3); display: flex; justify-content: center; gap: 6px; }
+.hero__dot { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / .45); cursor: pointer; transition: background-color var(--dur-2), width var(--dur-2); }
+.hero__dot:hover { background: rgb(255 255 255 / .7); }
+.hero__dot.is-active { width: 20px; border-radius: 4px; background: #fff; }
 .hero__content { width: 100%; max-width: 600px; padding: var(--space-5); }
 .hero__title { font-size: 1.35rem; font-weight: 800; line-height: 1.5; }
 .hero--compact .hero__title { font-size: 1.2rem; }
@@ -392,12 +406,14 @@ a.chip:hover, a.chip:active { background: var(--accent); color: #fff; }
 .hero__actions { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--space-2); margin-top: var(--space-4); }
 .hero__actions .btn { padding-inline: var(--space-3); }
 /* Keep the subject of the photo (the side without text) in view when cropped. */
-.hero--text-right .hero__img { object-position: 20% center; }
-.hero--text-left .hero__img { object-position: 80% center; }
+.hero--text-right .hero__img, .hero--text-right .hero__slideshow img { object-position: 20% center; }
+.hero--text-left .hero__img, .hero--text-left .hero__slideshow img { object-position: 80% center; }
 @media (max-width: 759px) {
   /* Phones: photo on top, text below it instead of covering it. */
   .hero--image { flex-direction: column; align-items: stretch; }
   .hero--image .hero__img { position: static; z-index: auto; height: auto; aspect-ratio: 16 / 9; }
+  /* relative (not static): its slides are positioned absolute and need a containing block. */
+  .hero--image .hero__slideshow { position: relative; z-index: auto; height: auto; aspect-ratio: 16 / 9; }
   .hero--image::before { display: none; }
 }
 @media (min-width: 760px) {

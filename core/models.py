@@ -100,6 +100,32 @@ class HeroBanner(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def slideshow_images(self):
+        """All images for this banner, background_image first. When more than
+        one, the template shows an auto-advancing slideshow instead of a
+        single static image."""
+        images = [self.background_image] if self.background_image else []
+        images += [extra.image for extra in self.extra_images.all()]
+        return images
+
+
+class HeroBannerImage(models.Model):
+    """An additional slide for a banner. Title, subtitle and buttons stay on
+    the HeroBanner; only the picture changes between slides."""
+
+    banner = models.ForeignKey(HeroBanner, on_delete=models.CASCADE, related_name='extra_images', verbose_name='بنر')
+    image = models.ImageField('تصویر', upload_to='banners/')
+    position = models.PositiveSmallIntegerField('ترتیب', default=0)
+
+    class Meta:
+        ordering = ['position', 'pk']
+        verbose_name = 'تصویر اسلایدشو بنر'
+        verbose_name_plural = 'تصاویر اسلایدشو بنر'
+
+    def __str__(self):
+        return f'تصویر اسلایدشو {self.banner}'
+
 
 class Page(models.Model):
     """Simple static page (about us, terms, ...)."""

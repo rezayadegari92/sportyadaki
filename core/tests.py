@@ -11,7 +11,7 @@ from django.utils import timezone
 from articles.models import Article
 from catalog.models import CarBrand, Product
 
-from .models import HeroBanner, SiteSettings
+from .models import HeroBanner, HeroBannerImage, SiteSettings
 from .templatetags.sporty import fa_number
 from .text import normalize_iran_mobile, to_ascii_digits
 
@@ -106,6 +106,40 @@ class HomePageTests(TestCase):
         self.assertNotContains(response, 'بنر خاموش')
         self.assertNotContains(response, 'محصول تمام‌شده')
         self.assertNotContains(response, 'محصول پیش‌نویس')
+
+    def test_single_image_banner_is_a_plain_image_not_a_slideshow(self):
+        HeroBanner.objects.create(title='بنر بالا', background_image='banners/top.jpg')
+        response = self.client.get(reverse('core:home'))
+        self.assertContains(response, 'class="hero__img"')
+        self.assertNotContains(response, 'data-slideshow')
+
+    def test_banner_with_extra_images_renders_as_a_slideshow(self):
+        banner = HeroBanner.objects.create(title='بنر بالا', background_image='banners/top.jpg')
+        HeroBannerImage.objects.create(banner=banner, image='banners/second.jpg', position=1)
+        HeroBannerImage.objects.create(banner=banner, image='banners/third.jpg', position=2)
+
+        self.assertEqual(
+            [image.name for image in banner.slideshow_images],
+            ['banners/top.jpg', 'banners/second.jpg', 'banners/third.jpg'],
+        )
+
+        response = self.client.get(reverse('core:home'))
+        self.assertContains(response, 'data-slideshow')
+        # Three <img> slides plus three dots; the first slide starts active so
+        # the banner is correct even before the slideshow script runs.
+        self.assertContains(response, 'banners/top.jpg')
+        self.assertContains(response, 'banners/second.jpg')
+        self.assertContains(response, 'banners/third.jpg')
+        self.assertContains(response, 'class="hero__dot is-active"', count=1)
+        self.assertContains(response, 'src="/media/banners/top.jpg" alt="" class="is-active"', count=1)
+
+    def test_banner_without_background_image_uses_extra_images_only(self):
+        banner = HeroBanner.objects.create(title='بنر بالا')
+        HeroBannerImage.objects.create(banner=banner, image='banners/only.jpg')
+        self.assertEqual([image.name for image in banner.slideshow_images], ['banners/only.jpg'])
+        response = self.client.get(reverse('core:home'))
+        self.assertContains(response, 'class="hero__img"')
+        self.assertNotContains(response, 'data-slideshow')
 
 
 class SeedDemoCommandTests(TestCase):

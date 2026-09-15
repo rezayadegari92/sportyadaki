@@ -45,6 +45,50 @@ document.querySelectorAll('img[data-fade]').forEach((image) => {
   }
 });
 
+// Hero banner slideshow: auto-advance through multiple images, with dots and
+// swipe/drag to jump. Progressive enhancement — the first slide is already
+// marked .is-active in the markup, so the banner is correct without this.
+const SLIDESHOW_INTERVAL = 5000;
+document.querySelectorAll('[data-slideshow]').forEach((slideshow) => {
+  const slides = [...slideshow.querySelectorAll(':scope > img')];
+  const dots = [...slideshow.querySelectorAll('[data-dot]')];
+  if (slides.length < 2) return;
+  let index = Math.max(slides.findIndex((slide) => slide.classList.contains('is-active')), 0);
+  let timer = null;
+
+  const goTo = (nextIndex) => {
+    slides[index].classList.remove('is-active');
+    dots[index]?.classList.remove('is-active');
+    index = (nextIndex + slides.length) % slides.length;
+    slides[index].classList.add('is-active');
+    dots[index]?.classList.add('is-active');
+  };
+  const restartTimer = () => {
+    clearInterval(timer);
+    if (prefersReducedMotion || document.hidden) return;
+    timer = setInterval(() => goTo(index + 1), SLIDESHOW_INTERVAL);
+  };
+
+  dots.forEach((dot, dotIndex) => {
+    dot.addEventListener('click', () => { goTo(dotIndex); restartTimer(); });
+  });
+
+  // Drag/swipe to move between slides (pointer events cover touch and mouse).
+  let dragStartX = null;
+  slideshow.addEventListener('pointerdown', (event) => { dragStartX = event.clientX; });
+  slideshow.addEventListener('pointerup', (event) => {
+    if (dragStartX === null) return;
+    const delta = event.clientX - dragStartX;
+    dragStartX = null;
+    if (Math.abs(delta) < 40) return; // a tap/click, not a drag
+    goTo(index + (delta < 0 ? 1 : -1));
+    restartTimer();
+  });
+
+  document.addEventListener('visibilitychange', restartTimer);
+  restartTimer();
+});
+
 // Bottom sheets (<dialog class="sheet">). Triggers are real links, so where
 // <dialog> isn't supported they keep their own behaviour (e.g. tel:).
 document.querySelectorAll('[data-sheet-open]').forEach((trigger) => {

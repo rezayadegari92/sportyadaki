@@ -1,0 +1,14 @@
+{% load sporty %}<a class="card article-card" href="{{ article.get_absolute_url }}">
+  <div class="article-card__media">
+    {% if article.featured_image %}
+      <img src="{{ article.featured_image.url }}" alt="" loading="lazy">
+    {% else %}
+      {% include "includes/placeholder.html" %}
+    {% endif %}
+  </div>
+  <div class="article-card__body">
+    {% if article.category %}<span class="chip">{{ article.category }}</span>{% endif %}
+    <h3 class="article-card__title">{{ article.title }}</h3>
+    <span class="meta">{{ article.read_time_minutes|fa_digits }} دقیقه مطالعه</span>
+  </div>
+</a>

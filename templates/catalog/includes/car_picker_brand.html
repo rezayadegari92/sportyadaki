@@ -1,0 +1,26 @@
+{% load sporty %}<li data-car-brand data-name="{{ name }}">
+  <details{% if selected_model and selected_model in models %} open{% endif %}>
+    <summary>
+      {% if image %}
+        <img src="{{ image.url }}" alt="" loading="lazy">
+      {% else %}
+        <span class="brand-dot" aria-hidden="true">{{ name|first }}</span>
+      {% endif %}
+      <span>{{ name }}</span>
+    </summary>
+    <ul>
+      {% for car_model in models %}
+        <li data-car-model data-name="{{ car_model.name }}">
+          <a href="?model={{ car_model.slug|urlencode }}"
+             class="{% if car_model == selected_model %}is-active{% elif not car_model.product_count %}is-empty{% endif %}"
+             {% if car_model == selected_model %}aria-current="true"{% endif %}>
+            <span>{{ car_model.name }}</span>
+            <span class="count">{{ car_model.product_count|fa_digits }}</span>
+          </a>
+        </li>
+      {% empty %}
+        <li class="car-picker__note">مدلی ثبت نشده است.</li>
+      {% endfor %}
+    </ul>
+  </details>
+</li>

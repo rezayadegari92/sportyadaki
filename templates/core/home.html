@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="visually-hidden">اسپرت یدکی — فروشگاه لوازم یدکی و اسپرت خودرو</h1>
+<div class="container">
+
+  {% if top_banner %}
+    {% include "includes/banner.html" with banner=top_banner priority=True %}
+  {% endif %}
+
+  {% if car_brands %}
+  <section class="section" id="brands" aria-labelledby="brands-title">
+    <div class="section__head">
+      <h2 class="section__title" id="brands-title">برندهای خودرو</h2>
+    </div>
+    <div class="rail brand-rail">
+      {% for brand in car_brands %}
+        <a class="brand-tile" href="{{ brand.get_absolute_url }}">
+          <span class="brand-tile__logo">
+            {% if brand.image %}
+              <img src="{{ brand.image.url }}" alt="" loading="lazy">
+            {% else %}
+              <span class="brand-tile__initial" aria-hidden="true">{{ brand.name|first }}</span>
+            {% endif %}
+          </span>
+          <span class="brand-tile__name">{{ brand.name }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="marquee" aria-label="مزایای خرید از اسپرت یدکی">
+    <ul class="visually-hidden">
+      {% for item in highlights %}<li>{{ item.text }}</li>{% endfor %}
+    </ul>
+    <div class="marquee__track" aria-hidden="true">
+      {% for group in marquee_groups %}
+        <ul class="marquee__group{% if not forloop.first %} marquee__group--clone{% endif %}">
+          {% for item in group %}
+            <li class="marquee__item{% if forloop.counter > highlights|length %} marquee__item--repeat{% endif %}">
+              {% include "includes/highlight_icon.html" with name=item.icon %}
+              <span>{{ item.text }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if sale_products %}
+  <section class="section offers" id="offers" aria-labelledby="offers-title">
+    <div class="offers__intro">
+      <div>
+        <h2 class="offers__title" id="offers-title">پیشنهادهای ویژه</h2>
+        <p class="offers__lead">تخفیف‌های محدود روی لوازم یدکی و اسپرت</p>
+      </div>
+      {% include "includes/rail_nav.html" with target="offers-rail" %}
+    </div>
+    <div class="rail" id="offers-rail">
+      {% for product in sale_products %}{% include "includes/product_card.html" %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if middle_banner %}
+    {% include "includes/banner.html" with banner=middle_banner compact=True %}
+  {% endif %}
+
+  {% if popular_products %}
+  <section class="section" aria-labelledby="popular-title">
+    <div class="section__head">
+      <h2 class="section__title" id="popular-title">محبوب‌ترین محصولات</h2>
+      {% include "includes/rail_nav.html" with target="popular-rail" %}
+    </div>
+    <div class="rail" id="popular-rail">
+      {% for product in popular_products %}{% include "includes/product_card.html" %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if articles %}
+  <section class="section" aria-labelledby="articles-title">
+    <div class="section__head">
+      <h2 class="section__title" id="articles-title">آخرین مقالات</h2>
+      <a class="section__more" href="{% url 'articles:list' %}">همه مقالات</a>
+      {% include "includes/rail_nav.html" with target="articles-rail" %}
+    </div>
+    <div class="rail article-rail" id="articles-rail">
+      {% for article in articles %}{% include "includes/article_card.html" %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}

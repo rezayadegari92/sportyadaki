@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load sporty %}
+
+{% block title %}لوازم یدکی {{ brand.name }} | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="مسیر"><a href="{% url 'core:home' %}">خانه</a> / <span>{{ brand.name }}</span></nav>
+
+  <header class="panel brand-head">
+    {% if brand.image %}<img class="brand-head__logo" src="{{ brand.image.url }}" alt="">{% endif %}
+    <div>
+      <h1 class="page-title">لوازم یدکی {{ brand.name }}</h1>
+      <p class="meta">مدل خودروی خود را انتخاب کنید تا قطعات مناسب آن را ببینید.</p>
+    </div>
+  </header>
+
+  {% if car_models %}
+    <div class="grid grid--models section">
+      {% for car_model in car_models %}
+        <a class="card model-card{% if not car_model.product_count %} model-card--empty{% endif %}"
+           href="{% url 'catalog:car_model' brand.slug car_model.slug %}">
+          <div class="model-card__media">
+            {% if car_model.image %}
+              <img src="{{ car_model.image.url }}" alt="" loading="lazy">
+            {% else %}
+              {% include "includes/car_placeholder.html" %}
+            {% endif %}
+          </div>
+          <div class="model-card__body">
+            <h2 class="model-card__title">{{ car_model.name }}</h2>
+            <span class="meta">{% if car_model.product_count %}{{ car_model.product_count|fa_digits }} محصول{% else %}به‌زودی{% endif %}</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty section">هنوز مدلی برای {{ brand.name }} ثبت نشده است.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load sporty %}
+
+{% block title %}{{ product.name }} | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="مسیر"><a href="{% url 'core:home' %}">خانه</a> / <span>{{ product.name }}</span></nav>
+
+  <article class="panel product-detail">
+    <div class="product-detail__media">
+      <div class="product-detail__image">
+        {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        {% else %}
+          {% include "includes/placeholder.html" %}
+        {% endif %}
+      </div>
+      {% with images=product.gallery.all %}{% if images %}
+      <div class="gallery">
+        {% for item in images %}
+          <a href="{{ item.image.url }}"><img src="{{ item.image.url }}" alt="{{ item.alt }}" loading="lazy"></a>
+        {% endfor %}
+      </div>
+      {% endif %}{% endwith %}
+    </div>
+
+    <div class="product-detail__info">
+      {% if product.part_brand %}<span class="product-card__brand">برند: {{ product.part_brand }}</span>{% endif %}
+      <h1 class="product-detail__title">{{ product.name }}</h1>
+      {% if product.sku %}<p class="meta">شناسه: <bdi>{{ product.sku }}</bdi></p>{% endif %}
+      {% include "includes/price.html" %}
+
+      <div class="product-rating" id="rating">
+        <div class="product-rating__summary">
+          {% if product.rating_count %}
+            {% include "includes/stars.html" with value=product.average_rating count=product.rating_count large=True %}
+          {% else %}
+            <span class="meta">هنوز امتیازی ثبت نشده است.</span>
+          {% endif %}
+        </div>
+        <form class="rate-form" method="post" action="{% url 'catalog:rate_product' product.slug %}" data-rate-form>
+          {% csrf_token %}
+          <fieldset class="star-input">
+            <legend>{% if user_rating %}امتیاز شما — برای تغییر، ستاره دیگری انتخاب کنید{% else %}به این محصول امتیاز دهید{% endif %}</legend>
+            <div class="star-input__stars">
+              {% for n in star_choices %}
+                <input type="radio" id="stars-{{ n }}" name="stars" value="{{ n }}"{% if n == user_rating %} checked{% endif %} required>
+                <label class="star-input__star" for="stars-{{ n }}">
+                  <span class="visually-hidden">{{ n|fa_digits }} ستاره</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z"/></svg>
+                </label>
+              {% endfor %}
+            </div>
+          </fieldset>
+          <button type="submit" class="btn btn--small btn--outline">ثبت امتیاز</button>
+        </form>
+      </div>
+
+      <div class="fitment">
+        <h2>مناسب برای</h2>
+        {% if car_models %}
+          <ul class="chips">
+            {% for car_model in car_models %}
+              <li>
+                {% if car_model.brand %}
+                  <a class="chip" href="{{ car_model.get_absolute_url }}">{{ car_model.brand }} · {{ car_model }}</a>
+                {% else %}
+                  <span class="chip">{{ car_model }}</span>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>عمومی — مناسب همه خودروها</p>
+        {% endif %}
+      </div>
+
+      {# Product HTML is written by staff in the admin (or imported from WordPress). #}
+      {% if product.short_description %}<div class="prose">{{ product.short_description|safe }}</div>{% endif %}
+
+      <div class="order-cta">
+        <p>برای ثبت سفارش و استعلام موجودی با ما در تماس باشید:</p>
+        {% include "includes/contact_buttons.html" %}
+      </div>
+    </div>
+  </article>
+
+  {% if product.description %}
+  <section class="panel section prose">
+    <h2>توضیحات</h2>
+    {{ product.description|safe }}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

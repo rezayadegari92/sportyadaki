@@ -1,0 +1,13 @@
+{% load static sporty %}<div class="contact-list">
+  <a class="contact-btn" href="tel:{{ site_settings.phone }}"><bdi>{{ site_settings.phone|fa_digits }}</bdi></a>
+  {% if site_settings.bale_url %}
+    <a class="contact-btn contact-btn--bale" href="{{ site_settings.bale_url }}" target="_blank" rel="noopener">
+      <img src="{% static 'img/bale.svg' %}" alt="" width="22" height="22">بله
+    </a>
+  {% endif %}
+  {% if site_settings.eitaa_url %}
+    <a class="contact-btn contact-btn--eitaa" href="{{ site_settings.eitaa_url }}" target="_blank" rel="noopener">
+      <img src="{% static 'img/eitaa.svg' %}" alt="" width="22" height="22">ایتا
+    </a>
+  {% endif %}
+</div>

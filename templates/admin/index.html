@@ -1,0 +1,6 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+  {% if dashboard %}{% include "admin/includes/dashboard.html" %}{% endif %}
+  {{ block.super }}
+{% endblock %}

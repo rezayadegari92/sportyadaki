@@ -1,0 +1,19 @@
+<section class="hero hero--text-{{ banner.content_side }}{% if banner.background_image %} hero--image{% endif %}{% if compact %} hero--compact{% endif %}" aria-label="{{ banner.title }}">
+  {% if banner.background_image %}
+    <img class="hero__img" src="{{ banner.background_image.url }}" alt=""{% if priority %} fetchpriority="high"{% else %} loading="lazy"{% endif %}>
+  {% endif %}
+  <div class="hero__content">
+    <h2 class="hero__title">{{ banner.title }}</h2>
+    {% if banner.subtitle %}<p class="hero__subtitle">{{ banner.subtitle }}</p>{% endif %}
+    {% if banner.primary_cta_label or banner.secondary_cta_label %}
+    <div class="hero__actions">
+      {% if banner.primary_cta_label %}
+        <a class="btn btn--primary" href="{{ banner.primary_cta_url|default:'#' }}">{{ banner.primary_cta_label }}</a>
+      {% endif %}
+      {% if banner.secondary_cta_label %}
+        <a class="btn btn--ghost" href="{{ banner.secondary_cta_url|default:'#' }}">{{ banner.secondary_cta_label }}</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</section>

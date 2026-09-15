@@ -1,0 +1,63 @@
+{% load static sporty %}<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}اسپرت یدکی | لوازم یدکی و اسپرت خودرو{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}فروشگاه آنلاین لوازم یدکی، قطعات اسپرت و اکسسوری خودروهای ایران خودرو، سایپا و برندهای چینی{% endblock %}">
+  <link rel="preload" href="{% static 'fonts/Vazirmatn-Regular.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container site-header__bar">
+      <a class="logo" href="{% url 'core:home' %}">
+        {% if site_settings.logo %}
+          <img class="logo__img" src="{{ site_settings.logo.url }}" alt="اسپرت یدکی">
+        {% else %}
+          <span class="logo__mark" aria-hidden="true">SY</span>
+          <span>اسپرت یدکی</span>
+        {% endif %}
+      </a>
+      <nav class="nav" aria-label="منوی اصلی">
+        <a href="{% url 'core:home' %}">خانه</a>
+        <a href="{% url 'catalog:sport' %}">لوازم اسپرت</a>
+        <a href="{% url 'catalog:accessories' %}">اکسسوری</a>
+        <a href="{% url 'core:home' %}#brands">برندهای خودرو</a>
+        <a href="{% url 'articles:list' %}">مقالات</a>
+      </nav>
+      <a class="header-phone" href="tel:{{ site_settings.phone }}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.12.37 2.33.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1l-2.2 2.2z"/></svg>
+        <bdi>{{ site_settings.phone|fa_digits }}</bdi>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    {% if messages %}
+      <div class="container messages">
+        {% for message in messages %}<p class="message message--{{ message.tags }}" role="status">{{ message }}</p>{% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__grid">
+        <div>
+          <p class="site-footer__name">اسپرت یدکی</p>
+          <p>فروشگاه آنلاین لوازم یدکی، قطعات اسپرت و اکسسوری خودرو</p>
+        </div>
+        <div>
+          <p class="site-footer__heading">ارتباط با ما</p>
+          {% include "includes/contact_buttons.html" %}
+        </div>
+      </div>
+      <p class="site-footer__copy">تمامی حقوق برای اسپرت یدکی محفوظ است.</p>
+    </div>
+  </footer>
+
+  <script src="{% static 'js/site.js' %}" defer></script>
+</body>
+</html>

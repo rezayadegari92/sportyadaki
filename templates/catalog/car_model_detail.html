@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load sporty %}
+
+{% block title %}لوازم یدکی {{ brand.name }} {{ car_model.name }} | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="مسیر">
+    <a href="{% url 'core:home' %}">خانه</a> / <a href="{{ brand.get_absolute_url }}">{{ brand.name }}</a> / <span>{{ car_model.name }}</span>
+  </nav>
+
+  <header class="panel brand-head">
+    {% if car_model.image %}
+      <img class="brand-head__logo" src="{{ car_model.image.url }}" alt="">
+    {% elif brand.image %}
+      <img class="brand-head__logo" src="{{ brand.image.url }}" alt="">
+    {% endif %}
+    <div>
+      <h1 class="page-title">لوازم یدکی {{ brand.name }} {{ car_model.name }}</h1>
+      <p class="meta">{{ page.paginator.count|fa_digits }} محصول مناسب این خودرو</p>
+      {% if sport_count or accessory_count %}
+        <div class="brand-head__links">
+          {% if sport_count %}
+            <a class="btn btn--small btn--outline" href="{% url 'catalog:sport' %}?model={{ car_model.slug|urlencode }}">لوازم اسپرت ({{ sport_count|fa_digits }})</a>
+          {% endif %}
+          {% if accessory_count %}
+            <a class="btn btn--small btn--outline" href="{% url 'catalog:accessories' %}?model={{ car_model.slug|urlencode }}">اکسسوری ({{ accessory_count|fa_digits }})</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if page.object_list %}
+    <div class="grid section">
+      {% for product in page.object_list %}{% include "includes/product_card.html" %}{% endfor %}
+    </div>
+    {% include "includes/pagination.html" %}
+  {% else %}
+    <div class="empty section">
+      <p>هنوز محصولی برای {{ brand.name }} {{ car_model.name }} ثبت نشده است.</p>
+      <a href="{{ brand.get_absolute_url }}">بازگشت به مدل‌های {{ brand.name }}</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

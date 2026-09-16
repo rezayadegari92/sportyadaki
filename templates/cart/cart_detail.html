@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load sporty %}
+
+{% block title %}سبد خرید | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% if items %}
+    {% include "orders/includes/checkout_steps.html" with step=1 %}
+    <h1 class="page-title page-title--spaced">سبد خرید <small class="meta">({{ totals.item_count|fa_digits }} کالا)</small></h1>
+
+    <div class="checkout-layout">
+      <section class="cart-items" aria-label="کالاهای سبد">
+        {% for item in items %}
+          <article class="panel cart-item{% if item.pk in problem_item_ids %} cart-item--problem{% endif %}">
+            <a class="cart-item__media" href="{{ item.product.get_absolute_url }}" tabindex="-1" aria-hidden="true">
+              {% if item.product.image %}<img src="{{ item.product.image.url }}" alt="" loading="lazy">{% else %}{% include "includes/placeholder.html" %}{% endif %}
+            </a>
+            <div class="cart-item__body">
+              <a class="cart-item__title" href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
+              {% if item.product.part_brand %}<span class="meta">{{ item.product.part_brand }}</span>{% endif %}
+              {% include "includes/price.html" with product=item.product %}
+              {% for problem in problems %}{% if problem.item.pk == item.pk %}<p class="field__error" role="alert">{{ problem.message }}</p>{% endif %}{% endfor %}
+
+              <div class="cart-item__actions">
+                <form class="qty" method="post" action="{% url 'cart:update' item.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="qty__btn" name="quantity" value="{{ item.quantity|add:'1' }}" aria-label="افزودن یک عدد">{% include "includes/ui_icon.html" with name="plus" %}</button>
+                  <span class="qty__value" aria-label="تعداد">{{ item.quantity|fa_digits }}</span>
+                  <button type="submit" class="qty__btn" name="quantity" value="{{ item.quantity|add:'-1' }}" aria-label="{% if item.quantity == 1 %}حذف از سبد{% else %}کم کردن یک عدد{% endif %}">
+                    {% if item.quantity == 1 %}{% include "includes/ui_icon.html" with name="trash" %}{% else %}<span aria-hidden="true">−</span>{% endif %}
+                  </button>
+                </form>
+                <form method="post" action="{% url 'cart:remove' item.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="link-btn link-btn--danger">حذف</button>
+                </form>
+              </div>
+            </div>
+            <div class="cart-item__total">{{ item.line_total|fa_number }} <small>تومان</small></div>
+          </article>
+        {% endfor %}
+      </section>
+
+      <aside class="panel summary" aria-labelledby="summary-title">
+        <h2 class="summary__title" id="summary-title">خلاصه سفارش</h2>
+        {% include "includes/order_totals.html" with subtotal=totals.subtotal shipping=totals.shipping tax=totals.tax total=totals.total %}
+        {% if totals.items_to_free_shipping > 0 %}
+          <p class="summary__hint">{% include "includes/ui_icon.html" with name="truck" %}با {{ totals.items_to_free_shipping|fa_digits }} کالای دیگر، ارسال رایگان می‌شود.</p>
+        {% elif totals.amount_to_free_shipping > 0 %}
+          <p class="summary__hint">{% include "includes/ui_icon.html" with name="truck" %}با {{ totals.amount_to_free_shipping|fa_number }} تومان خرید بیشتر، ارسال رایگان می‌شود.</p>
+        {% elif totals.free_shipping %}
+          <p class="summary__hint summary__hint--ok">{% include "includes/ui_icon.html" with name="check" %}ارسال این سفارش رایگان است.</p>
+        {% endif %}
+        {% if problems %}
+          <p class="field__error">برای ادامه، تعداد کالاهای مشخص‌شده را اصلاح کنید.</p>
+          <button type="button" class="btn btn--primary btn--lg btn--block" disabled>ادامه فرایند خرید</button>
+        {% else %}
+          <a class="btn btn--primary btn--lg btn--block summary__cta" href="{% url 'orders:checkout' %}">ادامه فرایند خرید</a>
+        {% endif %}
+      </aside>
+    </div>
+
+    {% if not problems %}
+      {# Phones: total and next step stay within thumb reach, above the tab bar. #}
+      <div class="sticky-cta">
+        <div class="sticky-cta__total"><span class="meta">مبلغ قابل پرداخت</span><strong>{{ totals.total|fa_number }} <small>تومان</small></strong></div>
+        <a class="btn btn--primary btn--lg" href="{% url 'orders:checkout' %}">ادامه خرید</a>
+      </div>
+    {% endif %}
+  {% else %}
+    <h1 class="page-title page-title--spaced">سبد خرید</h1>
+    <div class="empty empty--icon">
+      <span class="empty__icon">{% include "includes/ui_icon.html" with name="cart" %}</span>
+      <p>سبد خرید شما خالی است.</p>
+      <a class="btn btn--primary" href="{% url 'catalog:sport' %}">مشاهده لوازم اسپرت</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

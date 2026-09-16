@@ -1,0 +1,48 @@
+{% load sporty %}<section class="sy-dashboard" aria-label="خلاصه وضعیت فروشگاه">
+  {% if dashboard.cards %}
+  <div class="sy-cards">
+    {% for card in dashboard.cards %}
+      <a class="sy-card sy-tone--{{ card.tone }}" href="{{ card.url }}">
+        <span class="sy-card__icon">{% include "admin/includes/icon.html" with name=card.icon %}</span>
+        <span>
+          <span class="sy-card__value">{{ card.value|fa_number }}</span>
+          <span class="sy-card__label">{{ card.label }}</span>
+        </span>
+      </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="sy-actions">
+    {% for action in dashboard.actions %}
+      <a class="sy-action" href="{{ action.url }}">{% include "admin/includes/icon.html" with name=action.icon %}{{ action.label }}</a>
+    {% endfor %}
+    <a class="sy-action sy-action--ghost" href="{{ site_url }}" target="_blank" rel="noopener">{% include "admin/includes/icon.html" with name="eye" %}مشاهده سایت</a>
+  </div>
+
+  {% if dashboard.recent_orders is not None %}
+  <div class="module sy-recent">
+    <table>
+      <caption>آخرین سفارش‌ها</caption>
+      {% if dashboard.recent_orders %}
+        <thead>
+          <tr><th scope="col">سفارش</th><th scope="col">مشتری</th><th scope="col">وضعیت</th><th scope="col">مبلغ</th><th scope="col">تاریخ</th></tr>
+        </thead>
+        <tbody>
+          {% for row in dashboard.recent_orders %}
+            <tr>
+              <td><a href="{{ row.url }}">#{{ row.order.pk|fa_digits }}</a></td>
+              <td>{{ row.name }}</td>
+              <td><span class="sy-badge sy-badge--{{ row.tone }}">{{ row.order.get_status_display }}</span></td>
+              <td>{{ row.order.total_amount|fa_number }} <small class="sy-muted">تومان</small></td>
+              <td class="sy-muted">{{ row.order.created_at|date:"Y/m/d" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      {% else %}
+        <tbody><tr><td class="sy-muted">هنوز سفارشی ثبت نشده است.</td></tr></tbody>
+      {% endif %}
+    </table>
+  </div>
+  {% endif %}
+</section>

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}پیگیری سفارش | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container container--narrow">
+  <nav class="breadcrumbs" aria-label="مسیر"><a href="{% url 'core:home' %}">خانه</a> / <span>پیگیری سفارش</span></nav>
+  <div class="panel">
+    <h1 class="page-title">پیگیری سفارش</h1>
+    <p class="meta page-lead">شماره سفارش و شماره موبایلی را که هنگام خرید وارد کردید بنویسید.</p>
+    {% include "orders/includes/track_form.html" %}
+    {% include "orders/includes/track_result.html" %}
+  </div>
+</div>
+{% endblock %}

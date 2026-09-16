@@ -1,0 +1,7 @@
+{% load sporty %}{% if page.has_other_pages %}
+<nav class="pagination" aria-label="صفحه‌بندی">
+  {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}{% if query_string %}&amp;{{ query_string }}{% endif %}">قبلی</a>{% endif %}
+  <span>صفحه {{ page.number|fa_digits }} از {{ page.paginator.num_pages|fa_digits }}</span>
+  {% if page.has_next %}<a href="?page={{ page.next_page_number }}{% if query_string %}&amp;{{ query_string }}{% endif %}">بعدی</a>{% endif %}
+</nav>
+{% endif %}

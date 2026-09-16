@@ -1,0 +1,33 @@
+{% with images=banner.slideshow_images %}
+<section class="hero hero--text-{{ banner.content_side }}{% if images %} hero--image{% endif %}{% if compact %} hero--compact{% endif %}" aria-label="{{ banner.title }}"{% if reveal %} data-reveal{% endif %}>
+  {% if images|length > 1 %}
+    {# Multiple images: auto-advancing slideshow (static.js) with dot controls; first slide shows without JS. #}
+    <div class="hero__slideshow" data-slideshow>
+      {% for image in images %}
+        <img src="{{ image.url }}" alt=""{% if forloop.first %} class="is-active"{% if priority %} fetchpriority="high"{% endif %}{% else %} loading="lazy"{% endif %}>
+      {% endfor %}
+      <div class="hero__dots" role="tablist" aria-label="تصاویر بنر">
+        {% for image in images %}
+          <button type="button" class="hero__dot{% if forloop.first %} is-active{% endif %}" data-dot aria-label="نمایش تصویر {{ forloop.counter }}"></button>
+        {% endfor %}
+      </div>
+    </div>
+  {% elif images %}
+    <img class="hero__img" src="{{ images.0.url }}" alt="" data-fade{% if priority %} fetchpriority="high"{% else %} loading="lazy"{% endif %}>
+  {% endif %}
+  <div class="hero__content">
+    <h2 class="hero__title">{{ banner.title }}</h2>
+    {% if banner.subtitle %}<p class="hero__subtitle">{{ banner.subtitle }}</p>{% endif %}
+    {% if banner.primary_cta_label or banner.secondary_cta_label %}
+    <div class="hero__actions">
+      {% if banner.primary_cta_label %}
+        <a class="btn btn--primary btn--lg" href="{{ banner.primary_cta_url|default:'#' }}">{{ banner.primary_cta_label }}</a>
+      {% endif %}
+      {% if banner.secondary_cta_label %}
+        <a class="btn btn--ghost btn--lg" href="{{ banner.secondary_cta_url|default:'#' }}">{{ banner.secondary_cta_label }}</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endwith %}

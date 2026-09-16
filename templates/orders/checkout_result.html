@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load sporty %}
+
+{% block title %}نتیجه پرداخت | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container container--narrow">
+  {% include "orders/includes/checkout_steps.html" with step=3 %}
+  <div class="panel result result--{% if order.is_paid %}success{% else %}failed{% endif %}">
+    <span class="result__icon">{% if order.is_paid %}{% include "includes/ui_icon.html" with name="check" %}{% else %}{% include "includes/ui_icon.html" with name="alert" %}{% endif %}</span>
+    {% if order.is_paid %}
+      <h1 class="result__title">پرداخت با موفقیت انجام شد</h1>
+      <p>سفارش شما با شماره <strong>#{{ order.pk|fa_digits }}</strong> ثبت شد و به‌زودی آماده‌سازی می‌شود.</p>
+      {% if order.transaction_id %}<p class="meta">کد پیگیری پرداخت: <bdi>{{ order.transaction_id }}</bdi></p>{% endif %}
+      <div class="result__actions">
+        <a class="btn btn--primary btn--lg" href="{% url 'accounts:order_detail' order.pk %}">جزئیات سفارش</a>
+        <a class="btn btn--outline btn--lg" href="{% url 'core:home' %}">بازگشت به فروشگاه</a>
+      </div>
+    {% else %}
+      <h1 class="result__title">پرداخت انجام نشد</h1>
+      <p>سفارش <strong>#{{ order.pk|fa_digits }}</strong> ثبت شده اما پرداخت آن کامل نشد. اگر مبلغی از حساب شما کسر شده باشد، حداکثر تا ۷۲ ساعت به حسابتان برمی‌گردد.</p>
+      <div class="result__actions">
+        <form method="post" action="{% url 'payments:pay_order' order.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--primary btn--lg">پرداخت مجدد</button>
+        </form>
+        <a class="btn btn--outline btn--lg" href="{% url 'accounts:order_detail' order.pk %}">جزئیات سفارش</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

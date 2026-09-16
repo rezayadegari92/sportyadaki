@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load sporty %}
+
+{% block title %}سفارش #{{ order.pk }} | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="مسیر">
+    <a href="{% url 'accounts:dashboard' %}">حساب من</a> / <a href="{% url 'accounts:orders' %}">سفارش‌ها</a> / <span>#{{ order.pk|fa_digits }}</span>
+  </nav>
+
+  <div class="account-layout">
+    {% include "accounts/includes/account_nav.html" with active='orders' %}
+    <div class="account-main">
+      <section class="panel">
+        <div class="order-head">
+          <div>
+            <h1 class="page-title">سفارش #{{ order.pk|fa_digits }}</h1>
+            <p class="meta">ثبت‌شده در {{ order.created_at|date:"Y/m/d H:i" }}</p>
+          </div>
+          <span class="status status--{{ order.status }}">{{ order.get_status_display }}</span>
+        </div>
+
+        {% if can_pay %}
+          <div class="notice notice--warning notice--action">
+            <p>{% if order.status == 'failed' %}پرداخت این سفارش ناموفق بود.{% else %}این سفارش هنوز پرداخت نشده است.{% endif %}</p>
+            <form method="post" action="{% url 'payments:pay_order' order.pk %}">
+              {% csrf_token %}<button type="submit" class="btn btn--primary">پرداخت {{ order.total_amount|fa_number }} تومان</button>
+            </form>
+          </div>
+        {% elif order.status == 'cancelled' %}
+          <p class="notice notice--error">این سفارش لغو شده است. برای پیگیری با پشتیبانی تماس بگیرید.</p>
+        {% endif %}
+
+        {% include "orders/includes/progress.html" %}
+        {% include "orders/includes/shipment.html" %}
+      </section>
+
+      <section class="panel">
+        <h2 class="panel__title">{% include "includes/ui_icon.html" with name="package" %}کالاها</h2>
+        <ul class="line-items">
+          {% for item in order.items.all %}
+            <li class="line-item">
+              <span class="line-item__name">
+                {% if item.product and item.product.status == 'publish' %}<a href="{{ item.product.get_absolute_url }}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %}
+                <small class="meta">{{ item.quantity|fa_digits }} × {{ item.unit_price|fa_number }} تومان</small>
+              </span>
+              <span class="line-item__total">{{ item.total|fa_number }} <small>تومان</small></span>
+            </li>
+          {% endfor %}
+        </ul>
+        {% include "includes/order_totals.html" with subtotal=order.subtotal_amount shipping=order.shipping_total tax=order.tax_amount discount=order.discount_total total=order.total_amount total_label='مبلغ کل' %}
+      </section>
+
+      <div class="panel-grid">
+        {% with address=order.shipping_address %}{% if address %}
+        <section class="panel">
+          <h2 class="panel__title">{% include "includes/ui_icon.html" with name="pin" %}ارسال به</h2>
+          <p>{{ address.full_name }}</p>
+          <p class="meta">{{ address.state }}، {{ address.city }}، {{ address.address_1|fa_digits }}{% if address.address_2 %}، {{ address.address_2|fa_digits }}{% endif %}</p>
+          <p class="meta"><bdi>{{ address.phone|fa_digits }}</bdi>{% if address.postcode %} · کد پستی <bdi>{{ address.postcode|fa_digits }}</bdi>{% endif %}</p>
+        </section>
+        {% endif %}{% endwith %}
+
+        {% if invoice %}
+        <section class="panel">
+          <h2 class="panel__title">{% include "includes/ui_icon.html" with name="receipt" %}فاکتور</h2>
+          <dl class="kv">
+            <div><dt>شماره فاکتور</dt><dd><bdi>{{ invoice.number }}</bdi></dd></div>
+            <div><dt>تاریخ صدور</dt><dd>{{ invoice.issued_at|date:"Y/m/d" }}</dd></div>
+            <div><dt>مبلغ</dt><dd>{{ invoice.total|fa_number }} تومان</dd></div>
+            {% if order.transaction_id %}<div><dt>کد پیگیری پرداخت</dt><dd><bdi>{{ order.transaction_id }}</bdi></dd></div>{% endif %}
+          </dl>
+        </section>
+        {% endif %}
+      </div>
+
+      <p class="meta order-help">برای لغو یا تغییر سفارش با پشتیبانی تماس بگیرید.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

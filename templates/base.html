@@ -1,0 +1,140 @@
+{% load static sporty %}<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>{% block title %}اسپرت یدکی | لوازم یدکی و اسپرت خودرو{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}فروشگاه آنلاین لوازم یدکی، قطعات اسپرت و اکسسوری خودروهای ایران خودرو، سایپا و برندهای چینی{% endblock %}">
+  {# Lets CSS hide animated content only when the script that reveals it can run. #}
+  <script>document.documentElement.classList.add('js')</script>
+  <link rel="preload" href="{% static 'fonts/Vazirmatn-Regular.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body>
+  <a class="skip-link" href="#main">پرش به محتوای اصلی</a>
+
+  {% with view=request.resolver_match.view_name %}
+  <header class="site-header" data-header>
+    <div class="container site-header__bar">
+      <a class="logo" href="{% url 'core:home' %}">
+        {% if site_settings.logo %}
+          <img class="logo__img" src="{{ site_settings.logo.url }}" alt="اسپرت یدکی">
+        {% else %}
+          <span class="logo__mark" aria-hidden="true">SY</span>
+          <span>اسپرت یدکی</span>
+        {% endif %}
+      </a>
+      <nav class="nav" aria-label="منوی اصلی">
+        <a href="{% url 'core:home' %}"{% if view == 'core:home' %} class="is-active" aria-current="page"{% endif %}>خانه</a>
+        <a href="{% url 'catalog:sport' %}"{% if view == 'catalog:sport' %} class="is-active" aria-current="page"{% endif %}>لوازم اسپرت</a>
+        <a href="{% url 'catalog:accessories' %}"{% if view == 'catalog:accessories' %} class="is-active" aria-current="page"{% endif %}>اکسسوری</a>
+        <a href="{% url 'core:home' %}#brands"{% if view == 'catalog:car_brand' or view == 'catalog:car_model' %} class="is-active"{% endif %}>برندهای خودرو</a>
+        <a href="{% url 'articles:list' %}"{% if view == 'articles:list' or view == 'articles:detail' %} class="is-active"{% endif %}>مقالات</a>
+      </nav>
+      <div class="header-actions">
+        <a class="header-icon header-icon--desktop{% if view == 'cart:detail' %} is-active{% endif %}" href="{% url 'cart:detail' %}" aria-label="سبد خرید">
+          {% include "includes/ui_icon.html" with name="cart" %}
+          {% if cart_count %}<span class="count-badge">{{ cart_count|fa_digits }}</span>{% endif %}
+        </a>
+        <a class="header-icon header-icon--desktop" href="{% url 'accounts:dashboard' %}" aria-label="{% if user.is_authenticated %}حساب کاربری{% else %}ورود / ثبت‌نام{% endif %}">
+          {% include "includes/ui_icon.html" with name="user" %}
+        </a>
+        {# Opens the contact sheet; without <dialog> support it still dials. #}
+        <a class="header-phone" href="tel:{{ site_settings.phone }}" data-sheet-open="contact-sheet" aria-label="تماس با ما">
+          {% include "includes/ui_icon.html" with name="phone" %}
+          <bdi class="header-phone__number">{{ site_settings.phone|fa_digits }}</bdi>
+        </a>
+      </div>
+    </div>
+  </header>
+  {% endwith %}
+
+  <main id="main">
+    {% if messages %}
+      <div class="container messages">
+        {% for message in messages %}<p class="message message--{{ message.tags }}" role="status">{{ message }}</p>{% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__grid">
+        <div>
+          <p class="site-footer__name">اسپرت یدکی</p>
+          <p>فروشگاه آنلاین لوازم یدکی، قطعات اسپرت و اکسسوری خودرو</p>
+        </div>
+        <nav aria-labelledby="footer-links-title">
+          <p class="site-footer__heading" id="footer-links-title">دسترسی سریع</p>
+          <ul class="site-footer__links">
+            <li><a href="{% url 'catalog:sport' %}">لوازم اسپرت</a></li>
+            <li><a href="{% url 'catalog:accessories' %}">اکسسوری</a></li>
+            <li><a href="{% url 'core:home' %}#brands">برندهای خودرو</a></li>
+            <li><a href="{% url 'articles:list' %}">مقالات</a></li>
+          </ul>
+        </nav>
+        <div>
+          <p class="site-footer__heading">ارتباط با ما</p>
+          {% include "includes/contact_buttons.html" %}
+        </div>
+      </div>
+      <p class="site-footer__copy">تمامی حقوق برای اسپرت یدکی محفوظ است.</p>
+    </div>
+  </footer>
+
+  {# Phones: primary navigation within thumb reach. Hidden from 900px, where the header menu shows. #}
+  {% with view=request.resolver_match.view_name %}
+  <nav class="tabbar" aria-label="منوی پایین صفحه">
+    <a class="tabbar__item{% if view == 'core:home' %} is-active{% endif %}" href="{% url 'core:home' %}"{% if view == 'core:home' %} aria-current="page"{% endif %}>
+      {% include "includes/ui_icon.html" with name="home" %}<span>خانه</span>
+    </a>
+    <a class="tabbar__item{% if view == 'catalog:sport' %} is-active{% endif %}" href="{% url 'catalog:sport' %}"{% if view == 'catalog:sport' %} aria-current="page"{% endif %}>
+      {% include "includes/ui_icon.html" with name="bolt" %}<span>اسپرت</span>
+    </a>
+    <a class="tabbar__item{% if view == 'catalog:accessories' %} is-active{% endif %}" href="{% url 'catalog:accessories' %}"{% if view == 'catalog:accessories' %} aria-current="page"{% endif %}>
+      {% include "includes/ui_icon.html" with name="sparkles" %}<span>اکسسوری</span>
+    </a>
+    <a class="tabbar__item{% if view == 'cart:detail' or view == 'orders:checkout' %} is-active{% endif %}" href="{% url 'cart:detail' %}"{% if view == 'cart:detail' %} aria-current="page"{% endif %}>
+      <span class="tabbar__icon">{% include "includes/ui_icon.html" with name="cart" %}{% if cart_count %}<span class="count-badge">{{ cart_count|fa_digits }}</span>{% endif %}</span><span>سبد خرید</span>
+    </a>
+    <a class="tabbar__item{% if 'accounts:' in view %} is-active{% endif %}" href="{% url 'accounts:dashboard' %}">
+      {% include "includes/ui_icon.html" with name="user" %}<span>{% if user.is_authenticated %}حساب من{% else %}ورود{% endif %}</span>
+    </a>
+  </nav>
+  {% endwith %}
+
+  <dialog class="sheet" id="contact-sheet" aria-labelledby="contact-sheet-title">
+    <div class="sheet__body">
+      <div class="sheet__handle" aria-hidden="true"></div>
+      <div class="sheet__head">
+        {# Focus lands on the title (announced, no focus ring) rather than the close button. #}
+        <h2 class="sheet__title" id="contact-sheet-title" tabindex="-1" autofocus>ارتباط با اسپرت یدکی</h2>
+        <button type="button" class="icon-btn" data-sheet-close aria-label="بستن">{% include "includes/ui_icon.html" with name="x" %}</button>
+      </div>
+      <p class="sheet__lead">برای سفارش، استعلام قیمت و مشاوره با ما در تماس باشید.</p>
+      <div class="sheet__actions">
+        <a class="sheet-action" href="tel:{{ site_settings.phone }}">
+          <span class="sheet-action__icon">{% include "includes/ui_icon.html" with name="phone" %}</span>
+          <span><strong>تماس تلفنی</strong><small><bdi>{{ site_settings.phone|fa_digits }}</bdi></small></span>
+        </a>
+        {% if site_settings.bale_url %}
+          <a class="sheet-action" href="{{ site_settings.bale_url }}" target="_blank" rel="noopener">
+            <img class="sheet-action__img" src="{% static 'img/bale.svg' %}" alt="">
+            <span><strong>پیام در بله</strong><small><bdi>@{{ site_settings.bale_username }}</bdi></small></span>
+          </a>
+        {% endif %}
+        {% if site_settings.eitaa_url %}
+          <a class="sheet-action" href="{{ site_settings.eitaa_url }}" target="_blank" rel="noopener">
+            <img class="sheet-action__img" src="{% static 'img/eitaa.svg' %}" alt="">
+            <span><strong>پیام در ایتا</strong><small><bdi>@{{ site_settings.eitaa_username }}</bdi></small></span>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </dialog>
+
+  <script src="{% static 'js/site.js' %}" defer></script>
+</body>
+</html>

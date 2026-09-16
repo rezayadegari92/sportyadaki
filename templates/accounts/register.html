@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}ثبت‌نام | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container container--narrow">
+  <div class="panel auth">
+    <span class="auth__icon">{% include "includes/ui_icon.html" with name="user" %}</span>
+    <h1 class="page-title">ساخت حساب کاربری</h1>
+    <p class="meta page-lead">برای ثبت سفارش و پیگیری خریدها، حساب کاربری بسازید.</p>
+    <form method="post" class="form-stack">
+      {% csrf_token %}
+      {% include "includes/form_errors.html" %}
+      {% include "includes/form_field.html" with field=form.phone %}
+      <div class="form-row">
+        {% include "includes/form_field.html" with field=form.first_name %}
+        {% include "includes/form_field.html" with field=form.last_name %}
+      </div>
+      {% include "includes/form_field.html" with field=form.password1 %}
+      {% include "includes/form_field.html" with field=form.password2 %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" class="btn btn--primary btn--lg btn--block">ثبت‌نام</button>
+    </form>
+    <p class="auth__switch">قبلاً ثبت‌نام کرده‌اید؟ <a href="{% url 'accounts:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">وارد شوید</a></p>
+  </div>
+</div>
+{% endblock %}

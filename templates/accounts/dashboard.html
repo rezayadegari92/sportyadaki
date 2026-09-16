@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load sporty %}
+
+{% block title %}حساب کاربری | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="account-head">
+    <span class="account-head__avatar" aria-hidden="true">{{ user.first_name|first|default:'؟' }}</span>
+    <div>
+      <h1 class="page-title">{{ user.display_name }}</h1>
+      {% if user.phone %}<p class="meta"><bdi>{{ user.phone|fa_digits }}</bdi></p>{% endif %}
+    </div>
+  </div>
+
+  <div class="account-layout">
+    {% include "accounts/includes/account_nav.html" with active='dashboard' %}
+    <div class="account-main">
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">{% include "includes/ui_icon.html" with name="receipt" %}آخرین سفارش‌ها</h2>
+          <a class="link-btn" href="{% url 'accounts:orders' %}">همه سفارش‌ها</a>
+        </div>
+        {% if recent_orders %}
+          <div class="order-rows">{% for order in recent_orders %}{% include "accounts/includes/order_row.html" %}{% endfor %}</div>
+        {% else %}
+          <p class="meta">هنوز سفارشی ثبت نکرده‌اید.</p>
+        {% endif %}
+      </section>
+
+      <section class="panel">
+        <h2 class="panel__title">{% include "includes/ui_icon.html" with name="user" %}اطلاعات حساب</h2>
+        <form method="post" class="form-stack">
+          {% csrf_token %}
+          <div class="form-row">
+            {% include "includes/form_field.html" with field=form.first_name %}
+            {% include "includes/form_field.html" with field=form.last_name %}
+          </div>
+          <div class="field">
+            <span class="field__label">شماره موبایل</span>
+            <p class="field__static"><bdi>{{ user.phone|fa_digits|default:'—' }}</bdi></p>
+            <p class="field__help">برای تغییر شماره موبایل با پشتیبانی تماس بگیرید.</p>
+          </div>
+          <button type="submit" class="btn btn--primary">ذخیره تغییرات</button>
+        </form>
+      </section>
+
+      <section class="panel panel--row">
+        <div>
+          <h2 class="panel__title">{% include "includes/ui_icon.html" with name="pin" %}آدرس‌ها</h2>
+          <p class="meta">{% if address_count %}{{ address_count|fa_digits }} آدرس ذخیره شده{% else %}هنوز آدرسی ذخیره نکرده‌اید.{% endif %}</p>
+        </div>
+        <a class="btn btn--outline" href="{% url 'accounts:addresses' %}">مدیریت آدرس‌ها</a>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

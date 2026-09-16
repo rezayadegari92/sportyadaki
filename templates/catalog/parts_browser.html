@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load sporty %}
+
+{% block title %}{{ title }} | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="مسیر"><a href="{% url 'core:home' %}">خانه</a> / <span>{{ title }}</span></nav>
+
+  <div class="browser-head">
+    <h1 class="page-title">{{ title }}</h1>
+    <nav class="kind-switch" aria-label="نوع محصول">
+      <a href="{% url 'catalog:sport' %}"{% if kind == 'sport' %} class="is-active" aria-current="page"{% endif %}>لوازم اسپرت</a>
+      <a href="{% url 'catalog:accessories' %}"{% if kind == 'accessory' %} class="is-active" aria-current="page"{% endif %}>اکسسوری</a>
+    </nav>
+  </div>
+
+  <div class="browser">
+    <aside class="panel browser__cars" aria-label="انتخاب خودرو">
+      <button type="button" class="browser__toggle" aria-expanded="false" aria-controls="car-picker">
+        <span class="browser__toggle-label">خودرو:</span>
+        <strong>{% if selected_model %}{{ selected_model.brand|default:'' }} {{ selected_model }}{% elif show_all %}همه خودروها{% else %}عمومی (همه خودروها){% endif %}</strong>
+      </button>
+
+      <div class="car-picker" id="car-picker">
+        <input type="search" class="car-picker__search" placeholder="جستجوی برند یا مدل خودرو…" aria-label="جستجوی برند یا مدل خودرو" data-car-search>
+
+        <ul class="car-picker__fits">
+          <li>
+            <a href="?"{% if not selected_model and not show_all %} class="is-active"{% endif %}>
+              <span>محصولات عمومی<small>مناسب همه خودروها</small></span>
+              <span class="count">{{ universal_count|fa_digits }}</span>
+            </a>
+          </li>
+          <li>
+            <a href="?all=1"{% if show_all %} class="is-active"{% endif %}>
+              <span>همه محصولات</span>
+              <span class="count">{{ all_count|fa_digits }}</span>
+            </a>
+          </li>
+        </ul>
+
+        <p class="car-picker__heading">برند و مدل خودرو</p>
+        <ul class="car-picker__brands">
+          {% for brand in brands %}
+            {% include "catalog/includes/car_picker_brand.html" with name=brand.name image=brand.image models=brand.car_models.all %}
+          {% endfor %}
+          {% if unbranded_models %}
+            {% include "catalog/includes/car_picker_brand.html" with name="سایر" image=None models=unbranded_models %}
+          {% endif %}
+        </ul>
+        <p class="car-picker__note" data-car-empty hidden>برند یا مدلی با این نام پیدا نشد.</p>
+      </div>
+    </aside>
+
+    <section class="browser__results" aria-labelledby="results-title">
+      <form class="panel filters" method="get" data-auto-submit>
+        {% if selected_model %}
+          <input type="hidden" name="model" value="{{ selected_model.slug }}">
+        {% elif show_all %}
+          <input type="hidden" name="all" value="1">
+        {% endif %}
+        <div class="filters__search">
+          <input type="search" name="q" value="{{ q }}" placeholder="جستجو در {{ title }}…" aria-label="جستجوی محصول">
+          <button type="submit" class="btn btn--primary">جستجو</button>
+        </div>
+        <div class="filters__row">
+          {% if part_brands %}
+          <label>برند قطعه
+            <select name="brand">
+              <option value="">همه</option>
+              {% for part_brand in part_brands %}
+                <option value="{{ part_brand.slug }}"{% if part_brand.slug == selected_part_brand %} selected{% endif %}>{{ part_brand }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          {% endif %}
+          <label>مرتب‌سازی
+            <select name="sort">
+              {% for key, label in sorts %}
+                <option value="{{ key }}"{% if key == sort %} selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="check"><input type="checkbox" name="in_stock" value="1"{% if in_stock %} checked{% endif %}> فقط کالاهای موجود</label>
+          <label class="check"><input type="checkbox" name="on_sale" value="1"{% if on_sale %} checked{% endif %}> فقط تخفیف‌دار</label>
+          {% if has_filters %}<a class="filters__clear" href="?{{ fit_query }}">حذف فیلترها</a>{% endif %}
+        </div>
+      </form>
+
+      <div class="results-head">
+        <h2 id="results-title">
+          {% if selected_model %}{{ title }} {{ selected_model.brand|default:'' }} {{ selected_model }}
+          {% elif show_all %}همه {{ title }}
+          {% else %}{{ title }} عمومی <small>مناسب همه خودروها</small>{% endif %}
+        </h2>
+        <span class="meta">{{ page.paginator.count|fa_digits }} محصول</span>
+      </div>
+
+      {% if page.object_list %}
+        <div class="grid">
+          {% for product in page.object_list %}{% include "includes/product_card.html" %}{% endfor %}
+        </div>
+        {% include "includes/pagination.html" %}
+      {% else %}
+        <div class="empty">
+          <p>محصولی با این مشخصات پیدا نشد.</p>
+          {% if has_filters %}
+            <a href="?{{ fit_query }}">حذف فیلترها</a>
+          {% elif selected_model %}
+            <a href="?">مشاهده {{ title }} عمومی (مناسب همه خودروها)</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

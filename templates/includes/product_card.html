@@ -1,0 +1,20 @@
+{% load sporty %}<a class="card product-card" href="{{ product.get_absolute_url }}">
+  <div class="product-card__media media">
+    {% if product.image %}
+      <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" data-fade>
+    {% else %}
+      {% include "includes/placeholder.html" %}
+    {% endif %}
+    {% if product.discount_percent %}
+      <span class="badge badge--sale">{{ product.discount_percent|fa_digits }}٪</span>
+    {% endif %}
+  </div>
+  <div class="product-card__body">
+    {% if product.part_brand %}<span class="product-card__brand">{{ product.part_brand }}</span>{% endif %}
+    <h3 class="product-card__title">{{ product.name }}</h3>
+    {% if product.rating_count %}
+      {% include "includes/stars.html" with value=product.average_rating count=product.rating_count %}
+    {% endif %}
+    {% include "includes/price.html" %}
+  </div>
+</a>

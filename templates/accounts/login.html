@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}ورود | اسپرت یدکی{% endblock %}
+
+{% block content %}
+<div class="container container--narrow">
+  <div class="panel auth">
+    <span class="auth__icon">{% include "includes/ui_icon.html" with name="user" %}</span>
+    <h1 class="page-title">ورود به حساب کاربری</h1>
+    <p class="meta page-lead">با شماره موبایل و رمز عبور خود وارد شوید.</p>
+    <form method="post" class="form-stack">
+      {% csrf_token %}
+      {% include "includes/form_errors.html" %}
+      {% include "includes/form_field.html" with field=form.username %}
+      {% include "includes/form_field.html" with field=form.password %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" class="btn btn--primary btn--lg btn--block">ورود</button>
+    </form>
+    <p class="auth__switch">حساب کاربری ندارید؟ <a href="{% url 'accounts:register' %}{% if next %}?next={{ next|urlencode }}{% endif %}">ثبت‌نام کنید</a></p>
+  </div>
+</div>
+{% endblock %}

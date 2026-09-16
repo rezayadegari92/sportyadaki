@@ -1,0 +1,10 @@
+{% load sporty %}<div class="price{% if product.is_on_sale and product.stock_status != 'outofstock' %} price--sale{% endif %}">
+  {% if product.stock_status == 'outofstock' %}
+    <span class="price__none">ناموجود</span>
+  {% elif product.price is not None %}
+    {% if product.is_on_sale and product.regular_price %}<del>{{ product.regular_price|fa_number }}</del>{% endif %}
+    <strong>{{ product.price|fa_number }} <small>تومان</small></strong>
+  {% else %}
+    <span class="price__none">تماس بگیرید</span>
+  {% endif %}
+</div>

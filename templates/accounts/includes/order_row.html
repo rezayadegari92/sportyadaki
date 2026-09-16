@@ -1,0 +1,13 @@
+{% load sporty %}<a class="order-row" href="{% url 'accounts:order_detail' order.pk %}">
+  <span class="order-row__main">
+    <strong>سفارش #{{ order.pk|fa_digits }}</strong>
+    <span class="meta">{{ order.created_at|date:"Y/m/d" }} · {{ order.items.all|length|fa_digits }} کالا</span>
+  </span>
+  <span class="order-row__side">
+    <span class="status status--{{ order.status }}">{{ order.get_status_display }}</span>
+    <span class="order-row__total">{{ order.total_amount|fa_number }} <small>تومان</small></span>
+  </span>
+  {% if order.tracking_code %}
+    <span class="order-row__track">{% include "includes/ui_icon.html" with name="truck" %}{% if order.carrier %}{{ order.get_carrier_display }} · {% endif %}کد رهگیری: <bdi>{{ order.tracking_code }}</bdi></span>
+  {% endif %}
+</a>

@@ -1,0 +1,17 @@
+{# Plain inputs (no form object needed), so the homepage sheet can include it too. #}
+<form class="track-form" method="post" action="{% url 'orders:track' %}" data-track-form>
+  {% csrf_token %}
+  <div class="field">
+    <label class="field__label" for="{{ prefix|default:'track' }}-order">شماره سفارش</label>
+    <input id="{{ prefix|default:'track' }}-order" name="order_number" inputmode="numeric" autocomplete="off" dir="ltr"
+           placeholder="مثلاً ۱۲۴۵" required maxlength="20" value="{{ form.order_number.value|default:'' }}">
+  </div>
+  <div class="field">
+    <label class="field__label" for="{{ prefix|default:'track' }}-phone">شماره موبایل ثبت‌شده در سفارش</label>
+    <input id="{{ prefix|default:'track' }}-phone" name="phone" inputmode="tel" autocomplete="tel" dir="ltr"
+           placeholder="۰۹۱۲۳۴۵۶۷۸۹" required maxlength="20" value="{{ form.phone.value|default:'' }}">
+  </div>
+  <button type="submit" class="btn btn--primary btn--lg btn--block">
+    {% include "includes/ui_icon.html" with name="search" %}پیگیری سفارش
+  </button>
+</form>

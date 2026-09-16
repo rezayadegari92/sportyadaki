@@ -1,0 +1,285 @@
+/* Sportyadaki admin theme. Loaded after Django's admin CSS: it re-points the
+   admin's colour variables at the brand palette and softens the layout. */
+
+@font-face { font-family: Vazirmatn; src: url("../fonts/Vazirmatn-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: Vazirmatn; src: url("../fonts/Vazirmatn-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: Vazirmatn; src: url("../fonts/Vazirmatn-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: Vazirmatn; src: url("../fonts/Vazirmatn-ExtraBold.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+
+/* ---- Palette ------------------------------------------------------------ */
+
+:root,
+html[data-theme="light"] {
+  --primary: #1b3358;
+  --secondary: #0f1f38;
+  --accent: #f26522;
+  --primary-fg: #fff;
+
+  --body-fg: #1f2937;
+  --body-bg: #fff;
+  --body-quiet-color: #6b7280;
+  --body-medium-color: #374151;
+  --body-loud-color: #0f1f38;
+
+  --header-color: #fff;
+  --header-branding-color: #fff;
+  --header-bg: #0f1f38;
+  --header-link-color: #fff;
+
+  --breadcrumbs-fg: #6b7280;
+  --breadcrumbs-link-fg: #1b3358;
+  --breadcrumbs-bg: #fff;
+
+  --link-fg: #1f5fae;
+  --link-hover-color: #f26522;
+  --link-selected-fg: #0f1f38;
+
+  --hairline-color: #eceef2;
+  --border-color: #d9dee6;
+  --darkened-bg: #f6f7f9;
+  --selected-bg: #eef2f8;
+  --selected-row: #fff3ea;
+
+  --button-fg: #fff;
+  --button-bg: #1b3358;
+  --button-hover-bg: #0f1f38;
+  --default-button-bg: #f26522;
+  --default-button-hover-bg: #d4540f;
+  --close-button-bg: #8b94a3;
+  --close-button-hover-bg: #5c6575;
+  --object-tools-bg: #f26522;
+  --object-tools-hover-bg: #d4540f;
+
+  --font-family-primary: Vazirmatn, Tahoma, system-ui, sans-serif;
+
+  --sy-canvas: #f3f5f8;
+  --sy-shadow: 0 1px 2px rgb(15 31 56 / .05), 0 8px 24px rgb(15 31 56 / .06);
+  --sy-radius: 14px;
+  --sy-focus: 0 0 0 3px rgb(242 101 34 / .22);
+}
+
+/* Dark: every variable the light block sets that Django's dark theme also
+   changes is set again here, so the light values never leak into dark mode. */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    --primary: #22406b;
+    --secondary: #0b1526;
+    --primary-fg: #f3f4f6;
+    --body-fg: #e5e7eb;
+    --body-bg: #172131;
+    --body-quiet-color: #9aa4b5;
+    --body-medium-color: #cfd5de;
+    --body-loud-color: #fff;
+    --header-bg: #0b1526;
+    --breadcrumbs-fg: #9aa4b5;
+    --breadcrumbs-link-fg: #e5e7eb;
+    --breadcrumbs-bg: #172131;
+    --link-fg: #8db7ff;
+    --link-hover-color: #ff9259;
+    --link-selected-fg: #fff;
+    --hairline-color: #243247;
+    --border-color: #33425a;
+    --darkened-bg: #1d2a3d;
+    --selected-bg: #22324a;
+    --selected-row: #3b2616;
+    --button-bg: #2b4c7e;
+    --button-hover-bg: #36598f;
+    --close-button-bg: #3b475a;
+    --close-button-hover-bg: #56647a;
+    --sy-canvas: #0f1724;
+    --sy-shadow: 0 1px 2px rgb(0 0 0 / .35);
+  }
+}
+html[data-theme="dark"] {
+  --primary: #22406b;
+  --secondary: #0b1526;
+  --primary-fg: #f3f4f6;
+  --body-fg: #e5e7eb;
+  --body-bg: #172131;
+  --body-quiet-color: #9aa4b5;
+  --body-medium-color: #cfd5de;
+  --body-loud-color: #fff;
+  --header-bg: #0b1526;
+  --breadcrumbs-fg: #9aa4b5;
+  --breadcrumbs-link-fg: #e5e7eb;
+  --breadcrumbs-bg: #172131;
+  --link-fg: #8db7ff;
+  --link-hover-color: #ff9259;
+  --link-selected-fg: #fff;
+  --hairline-color: #243247;
+  --border-color: #33425a;
+  --darkened-bg: #1d2a3d;
+  --selected-bg: #22324a;
+  --selected-row: #3b2616;
+  --button-bg: #2b4c7e;
+  --button-hover-bg: #36598f;
+  --close-button-bg: #3b475a;
+  --close-button-hover-bg: #56647a;
+  --sy-canvas: #0f1724;
+  --sy-shadow: 0 1px 2px rgb(0 0 0 / .35);
+}
+
+/* ---- Page frame --------------------------------------------------------- */
+
+body { background: var(--sy-canvas); }
+#content h1 { font-size: 1.35rem; font-weight: 800; color: var(--body-loud-color); }
+#content h2 { font-weight: 700; }
+
+#header { background: var(--header-bg); border-bottom: 3px solid var(--accent); min-height: 60px; padding-block: 10px; }
+#site-name { font-size: 1.05rem; font-weight: 800; }
+#site-name a.sy-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--header-branding-color); }
+.sy-brand__mark { width: 34px; height: 34px; border-radius: 10px; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: .78rem; font-weight: 800; letter-spacing: .5px; }
+#user-tools { font-weight: 500; }
+#user-tools a { border-bottom: 0; }
+#user-tools a:focus, #user-tools a:hover { color: var(--accent); text-decoration: none; }
+
+div.breadcrumbs { background: var(--breadcrumbs-bg); color: var(--breadcrumbs-fg); border-bottom: 1px solid var(--hairline-color); padding-block: 12px; font-size: .85rem; }
+div.breadcrumbs a { color: var(--breadcrumbs-link-fg); font-weight: 700; }
+div.breadcrumbs a:focus, div.breadcrumbs a:hover { color: var(--accent); }
+
+#nav-sidebar { background: var(--body-bg); border-inline-end: 1px solid var(--hairline-color); }
+#nav-sidebar .module { border: 0; border-radius: 0; box-shadow: none; margin-bottom: 0; }
+#nav-sidebar .current-model { background: var(--selected-row); }
+#nav-sidebar .current-app .section:link, #nav-sidebar .current-app .section:visited { color: var(--accent); }
+.toggle-nav-sidebar { background: var(--body-bg); border-inline-end: 1px solid var(--hairline-color); color: var(--body-quiet-color); }
+#nav-filter { border-radius: 8px; }
+
+ul.messagelist li { border-radius: 10px; margin-bottom: 8px; font-weight: 500; }
+
+/* ---- Cards (modules) ---------------------------------------------------- */
+
+.module { background: var(--body-bg); border: 1px solid var(--hairline-color); border-radius: var(--sy-radius); box-shadow: var(--sy-shadow); }
+.app-list .module, #changelist-filter { overflow: hidden; }
+.module h2, .module caption, .inline-group h2 {
+  background: var(--darkened-bg);
+  color: var(--body-loud-color);
+  border-bottom: 1px solid var(--hairline-color);
+  padding: 10px 14px;
+  font-size: .9rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.module caption a.section:link, .module caption a.section:visited,
+.module h2 a:link, .module h2 a:visited { color: var(--body-loud-color); }
+fieldset.module > h2:first-child, fieldset.module > details > summary > h2 {
+  border-start-start-radius: calc(var(--sy-radius) - 1px);
+  border-start-end-radius: calc(var(--sy-radius) - 1px);
+}
+.module table { width: 100%; }
+.module tr:last-child > td, .module tr:last-child > th { border-bottom: 0; }
+
+/* ---- Forms -------------------------------------------------------------- */
+
+.form-row { padding: 12px 14px; }
+input[type="text"], input[type="password"], input[type="email"], input[type="url"], input[type="number"],
+input[type="tel"], input[type="search"], textarea, select, .vTextField {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: var(--body-bg);
+  color: var(--body-fg);
+  font-family: inherit;
+}
+select:not([multiple]) { height: auto; padding-block: 6px; }
+input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: var(--sy-focus); outline: none; }
+
+.button, input[type="submit"], input[type="button"], .submit-row input, a.button {
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-family: inherit;
+  font-weight: 700;
+}
+.submit-row { background: var(--body-bg); border: 1px solid var(--hairline-color); border-radius: var(--sy-radius); box-shadow: var(--sy-shadow); padding: 12px 14px; }
+.submit-row a.deletelink { height: auto; border-radius: 10px; padding: 9px 16px; }
+.object-tools a:link, .object-tools a:visited { border-radius: 999px; padding: 6px 16px; font-size: .82rem; font-weight: 700; letter-spacing: 0; text-transform: none; }
+
+/* ---- Change lists ------------------------------------------------------- */
+
+#changelist #toolbar { background: var(--body-bg); border: 1px solid var(--hairline-color); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+#changelist .actions { background: var(--body-bg); border: 1px solid var(--hairline-color); border-radius: 10px; padding: 8px 12px; margin-bottom: 10px; }
+#changelist .results { background: var(--body-bg); border: 1px solid var(--hairline-color); border-radius: var(--sy-radius); box-shadow: var(--sy-shadow); overflow-x: auto; }
+#result_list thead th { background: var(--darkened-bg); color: var(--body-medium-color); border-bottom: 1px solid var(--hairline-color); font-size: .8rem; font-weight: 700; letter-spacing: 0; text-transform: none; }
+#result_list td, #result_list th { vertical-align: middle; padding: 9px 12px; border-bottom-color: var(--hairline-color); white-space: nowrap; }
+/* Only names and titles wrap, and they get enough room not to stack word by word. */
+#result_list .field-name, #result_list .field-title { white-space: normal; min-width: 220px; }
+#result_list tbody tr:hover { background: var(--selected-bg); }
+#result_list tbody tr.selected { background: var(--selected-row); }
+#changelist .paginator { background: transparent; border: 0; padding-block: 12px; }
+#changelist-filter { background: var(--body-bg); border: 1px solid var(--hairline-color); border-radius: var(--sy-radius); box-shadow: var(--sy-shadow); }
+#changelist-filter h2 { background: var(--darkened-bg); color: var(--body-loud-color); font-weight: 800; }
+#changelist-filter h3 { font-weight: 700; }
+
+/* ---- List column helpers (core/admin_display.py) ------------------------ */
+
+.sy-muted { color: var(--body-quiet-color); }
+.sy-thumb { display: inline-block; width: 44px; height: 44px; border-radius: 8px; object-fit: cover; vertical-align: middle; background: var(--darkened-bg); border: 1px solid var(--hairline-color); }
+.sy-thumb--contain { object-fit: contain; padding: 3px; background: #fff; }
+.sy-thumb--wide { width: 92px; }
+.sy-thumb--empty { border-style: dashed; background: var(--darkened-bg); }
+.sy-stars { color: #d98b00; font-weight: 800; white-space: nowrap; }
+.sy-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700; white-space: nowrap; background: var(--sy-tone-bg); color: var(--sy-tone); }
+.sy-badge--gray, .sy-tone--gray { --sy-tone: #4b5563; --sy-tone-bg: rgb(107 114 128 / .14); }
+.sy-badge--navy, .sy-tone--navy { --sy-tone: #1b3358; --sy-tone-bg: rgb(27 51 88 / .1); }
+.sy-badge--blue, .sy-tone--blue { --sy-tone: #1f5fae; --sy-tone-bg: rgb(31 95 174 / .12); }
+.sy-badge--green, .sy-tone--green { --sy-tone: #13804a; --sy-tone-bg: rgb(19 128 74 / .12); }
+.sy-badge--orange, .sy-tone--orange { --sy-tone: #c2500f; --sy-tone-bg: rgb(242 101 34 / .14); }
+.sy-badge--red, .sy-tone--red { --sy-tone: #c0263a; --sy-tone-bg: rgb(225 29 72 / .12); }
+.sy-badge--gold, .sy-tone--gold { --sy-tone: #a86a00; --sy-tone-bg: rgb(245 165 36 / .16); }
+html[data-theme="dark"] [class*="sy-badge--"], html[data-theme="dark"] [class*="sy-tone--"] { --sy-tone: #f3f4f6; }
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) [class*="sy-badge--"], html:not([data-theme="light"]) [class*="sy-tone--"] { --sy-tone: #f3f4f6; }
+}
+
+/* ---- Dashboard ---------------------------------------------------------- */
+
+.dashboard #content { width: auto; max-width: 1180px; }
+.sy-dashboard { display: grid; gap: 18px; margin-bottom: 26px; }
+/* Span the "recent actions" column too, so that column starts beside the app
+   list instead of under an empty gap. Widths match Django's .colMS margins. */
+@media (min-width: 1025px) { .dashboard .sy-dashboard { margin-inline-end: -300px; } }
+@media (min-width: 768px) and (max-width: 1024px) { .dashboard .sy-dashboard { margin-inline-end: -290px; } }
+/* Django 6 underlines links inside #content with an ID selector; these links
+   are styled as cards and buttons instead. */
+.sy-dashboard a.sy-card, .sy-dashboard a.sy-card *, .sy-dashboard a.sy-action, #site-name a.sy-brand { text-decoration: none !important; }
+.sy-icon { flex: none; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.sy-cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+a.sy-card:link, a.sy-card:visited {
+  display: flex; align-items: center; gap: 14px; padding: 16px;
+  background: var(--body-bg); color: var(--body-fg);
+  border: 1px solid var(--hairline-color); border-radius: var(--sy-radius); box-shadow: var(--sy-shadow);
+  transition: transform .15s, border-color .15s;
+}
+a.sy-card:hover, a.sy-card:focus { transform: translateY(-2px); border-color: var(--accent); text-decoration: none; }
+.sy-card__icon { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--sy-tone-bg); color: var(--sy-tone); }
+.sy-card__icon .sy-icon { width: 23px; height: 23px; }
+.sy-card__value { display: block; font-size: 1.6rem; font-weight: 800; line-height: 1.2; color: var(--body-loud-color); }
+.sy-card__label { font-size: .82rem; color: var(--body-quiet-color); }
+
+.sy-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+a.sy-action:link, a.sy-action:visited {
+  display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;
+  background: var(--default-button-bg); color: #fff; border: 1px solid transparent;
+  border-radius: 999px; font-size: .85rem; font-weight: 700;
+}
+a.sy-action:hover, a.sy-action:focus { background: var(--default-button-hover-bg); color: #fff; text-decoration: none; }
+a.sy-action--ghost:link, a.sy-action--ghost:visited { background: var(--body-bg); color: var(--body-loud-color); border-color: var(--border-color); }
+a.sy-action--ghost:hover, a.sy-action--ghost:focus { background: var(--body-bg); color: var(--accent); border-color: var(--accent); }
+.sy-action .sy-icon { width: 16px; height: 16px; stroke-width: 2.2; }
+
+.sy-recent { overflow-x: auto; }
+.sy-recent table { width: 100%; }
+.dashboard .sy-recent th, .dashboard .sy-recent td { width: auto; padding: 10px 14px; vertical-align: middle; white-space: nowrap; }
+.dashboard .sy-recent thead th { background: var(--darkened-bg); color: var(--body-quiet-color); font-size: .78rem; font-weight: 700; }
+.dashboard .sy-recent td a { display: inline; padding: 0; font-weight: 800; }
+
+/* ---- Login -------------------------------------------------------------- */
+
+body.login { background: radial-gradient(circle at 15% 0%, #22406b, #0f1f38 60%); min-height: 100vh; }
+.login #container { margin-top: 12vh; border: 0; border-radius: 18px; overflow: hidden; box-shadow: 0 24px 60px rgb(0 0 0 / .35); }
+.login #header { padding: 18px 24px; }
+.login #content { padding: 24px 26px 28px; }
+.login .submit-row { background: transparent; border: 0; box-shadow: none; padding: 1em 0 0; }
+.login .submit-row input[type="submit"] { width: 100%; background: var(--default-button-bg); }
+.login .submit-row input[type="submit"]:hover { background: var(--default-button-hover-bg); }

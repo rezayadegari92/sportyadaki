@@ -1,0 +1,10 @@
+{% load sporty %}<dl class="totals">
+  <div class="totals__row"><dt>جمع کالاها</dt><dd>{{ subtotal|fa_number }} <small>تومان</small></dd></div>
+  <div class="totals__row">
+    <dt>هزینه ارسال</dt>
+    <dd>{% if shipping %}{{ shipping|fa_number }} <small>تومان</small>{% else %}<span class="totals__free">رایگان</span>{% endif %}</dd>
+  </div>
+  {% if tax %}<div class="totals__row"><dt>مالیات</dt><dd>{{ tax|fa_number }} <small>تومان</small></dd></div>{% endif %}
+  {% if discount %}<div class="totals__row"><dt>تخفیف</dt><dd>{{ discount|fa_number }} <small>تومان</small></dd></div>{% endif %}
+  <div class="totals__row totals__row--total"><dt>{{ total_label|default:'مبلغ قابل پرداخت' }}</dt><dd>{{ total|fa_number }} <small>تومان</small></dd></div>
+</dl>

@@ -418,15 +418,30 @@ a.chip:hover, a.chip:active { background: var(--accent); color: #fff; }
 }
 @media (min-width: 760px) {
   .hero { align-items: center; margin-block: var(--space-6) var(--space-8); }
+  /* A tall wide banner: pin the title/subtitle to the top and the buttons to
+     the bottom instead of clumping everything in the vertical middle.
+     Compact banners stay centered — they're short, nothing to spread out. */
+  .hero:not(.hero--compact) { align-items: stretch; }
+  .hero:not(.hero--compact) .hero__content { display: flex; flex-direction: column; }
+  /* Sit closer to the top edge than the default padding would put it. */
+  .hero:not(.hero--compact) .hero__content { padding-top: clamp(16px, 2.2vw, 26px); }
   .hero__content { padding: clamp(28px, 4vw, 48px); }
   .hero__title { font-size: clamp(1.6rem, 3.4vw, 2.6rem); }
   .hero--compact .hero__title { font-size: clamp(1.35rem, 2.6vw, 2rem); }
   .hero__subtitle { font-size: clamp(.95rem, 1.5vw, 1.1rem); }
   .hero__actions { display: flex; flex-wrap: wrap; }
   .hero__actions .btn { padding-inline: var(--space-6); }
+  .hero:not(.hero--compact) .hero__actions { margin-top: auto; }
   /* Darken behind the text only. */
   .hero--text-right::before { background: linear-gradient(to left, rgb(10 11 14 / .85), rgb(10 11 14 / .35) 50%, transparent 80%); }
   .hero--text-left { justify-content: flex-end; }
+  /* The content box sits flush left here, but RTL's own default alignment
+     (text-align and flex justify-content both default to the right) would
+     still hug the box's right/inner edge — pulling text and buttons back
+     toward the banner's center. Mirror both to the box's outer (left) edge
+     so they actually sit at the left side of the banner, not just the box. */
+  .hero--text-left .hero__title, .hero--text-left .hero__subtitle { text-align: left; }
+  .hero--text-left .hero__actions { justify-content: flex-end; }
   .hero--text-left::before { background: linear-gradient(to right, rgb(10 11 14 / .85), rgb(10 11 14 / .35) 50%, transparent 80%); }
 }
 @media (min-width: 1000px) {

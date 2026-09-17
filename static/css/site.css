@@ -845,14 +845,18 @@ a.chip:hover, a.chip:active { background: var(--accent); color: #fff; }
 .ship-bar--done .ship-bar__text, .ship-bar--done .ship-bar__text .icon { color: #146c3a; }
 @media (prefers-reduced-motion: reduce) { .ship-bar__fill { transition: none; } }
 
-/* Checkout cross-sell: a product card with a one-click add under it. */
-.suggest-card { display: grid; gap: 8px; align-content: start; }
+/* Checkout cross-sell: a product card with a one-click add under it. The card
+   takes the leftover height so buttons line up however tall the titles and
+   prices run (a sale price adds a line). */
+.suggest-card { display: grid; grid-template-rows: 1fr auto; gap: 8px; }
 .suggest-card .btn { gap: 6px; }
 .suggest-card .btn .icon { width: 16px; height: 16px; }
 
-/* The cross-sell sheet sizes its rail to the dialog, not the viewport. */
+/* The cross-sell sheet sizes its rail to the dialog, not the viewport: the
+   dialog stops at 560px, so the viewport-based column counts are far too many. */
 .sheet--suggest .sheet__body { max-height: 88vh; overflow-y: auto; }
-.sheet--suggest .rail { --cols: 2.2; margin-inline: 0; padding-inline: 0; }
+.sheet--suggest .rail { --cols: 1.7; margin-inline: 0; padding-inline: 0; scroll-padding-inline: 0; }
+@media (min-width: 600px) { .sheet--suggest .rail { --cols: 2.2; } }
 .sheet--suggest .sheet__lead strong { color: var(--accent-dark); }
 .sheet--suggest .sheet__head { gap: var(--space-2); }
 .sheet--suggest .sheet__title { flex: 1; }  /* groups the rail arrows next to the close button */

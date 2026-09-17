@@ -111,11 +111,29 @@ class CartViewTests(TestCase):
     def test_suggestion_can_be_added_without_leaving_the_cart(self):
         offered = make_product('offered')
         CheckoutSuggestion.objects.create(product=offered)
-        cart_url = reverse('cart:detail')
+        reopened = reverse('cart:detail') + '?suggest=1'
 
-        response = self.client.post(reverse('cart:add', args=[offered.pk]), {'quantity': 1, 'next': cart_url})
-        self.assertRedirects(response, cart_url)
+        response = self.client.post(reverse('cart:add', args=[offered.pk]), {'quantity': 1, 'next': reopened})
+        self.assertRedirects(response, reopened)
         self.assertTrue(CartItem.objects.filter(product=offered).exists())
+
+    def test_checkout_button_opens_the_suggestion_sheet_only_when_there_is_one(self):
+        self.add(self.limited, 1)
+        without = self.client.get(reverse('cart:detail'))
+        self.assertNotContains(without, 'suggest-sheet')
+
+        CheckoutSuggestion.objects.create(product=make_product('offered'))
+        with_sheet = self.client.get(reverse('cart:detail'))
+        self.assertContains(with_sheet, 'data-sheet-open="suggest-sheet"')
+        # The trigger stays a real link, so checkout is still reachable without JS.
+        self.assertContains(with_sheet, f'href="{reverse("orders:checkout")}"')
+
+    def test_sheet_reopens_after_adding_from_it(self):
+        self.add(self.limited, 1)
+        CheckoutSuggestion.objects.create(product=make_product('offered'))
+
+        self.assertNotContains(self.client.get(reverse('cart:detail')), 'data-sheet-autoopen')
+        self.assertContains(self.client.get(reverse('cart:detail'), {'suggest': '1'}), 'data-sheet-autoopen')
 
     def test_items_of_another_cart_are_not_reachable(self):
         self.add(self.limited, 1)

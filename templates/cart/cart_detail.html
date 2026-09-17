@@ -68,42 +68,62 @@
           <p class="field__error">برای ادامه، تعداد کالاهای مشخص‌شده را اصلاح کنید.</p>
           <button type="button" class="btn btn--primary btn--lg btn--block" disabled>ادامه فرایند خرید</button>
         {% else %}
-          <a class="btn btn--primary btn--lg btn--block summary__cta" href="{% url 'orders:checkout' %}">ادامه فرایند خرید</a>
+          {# With suggestions to offer, the link opens the sheet first; without JS it goes straight to checkout. #}
+          <a class="btn btn--primary btn--lg btn--block summary__cta" href="{% url 'orders:checkout' %}"
+             {% if suggestions %}data-sheet-open="suggest-sheet"{% endif %}>ادامه فرایند خرید</a>
         {% endif %}
       </aside>
     </div>
-
-    {% if suggestions %}
-      <section class="section" aria-labelledby="suggest-title" data-reveal>
-        <div class="section__head">
-          <h2 class="section__title" id="suggest-title">
-            <span class="section__icon">{% include "includes/ui_icon.html" with name="package" %}</span>شاید این‌ها را هم بخواهید
-          </h2>
-          {% include "includes/rail_nav.html" with target="suggest-rail" %}
-        </div>
-        <div class="rail" id="suggest-rail">
-          {% for product in suggestions %}
-            <div class="suggest-card">
-              {% include "includes/product_card.html" %}
-              <form method="post" action="{% url 'cart:add' product.pk %}">
-                {% csrf_token %}
-                <input type="hidden" name="next" value="{{ request.path }}">
-                <button type="submit" class="btn btn--outline btn--small btn--block">
-                  {% include "includes/ui_icon.html" with name="plus" %}افزودن به سبد
-                </button>
-              </form>
-            </div>
-          {% endfor %}
-        </div>
-      </section>
-    {% endif %}
 
     {% if not problems %}
       {# Phones: total and next step stay within thumb reach, above the tab bar. #}
       <div class="sticky-cta">
         <div class="sticky-cta__total"><span class="meta">مبلغ قابل پرداخت</span><strong>{{ totals.total|fa_number }} <small>تومان</small></strong></div>
-        <a class="btn btn--primary btn--lg" href="{% url 'orders:checkout' %}">ادامه خرید</a>
+        <a class="btn btn--primary btn--lg" href="{% url 'orders:checkout' %}"
+           {% if suggestions %}data-sheet-open="suggest-sheet"{% endif %}>ادامه خرید</a>
       </div>
+    {% endif %}
+
+    {% comment %}
+      Last-chance add-ons, shown over the cart when the customer heads to
+      checkout. Adding one returns here with ?suggest=1 so the sheet reopens
+      and they can keep going.
+    {% endcomment %}
+    {% if suggestions %}
+      <dialog class="sheet sheet--suggest" id="suggest-sheet" aria-labelledby="suggest-sheet-title"
+              {% if request.GET.suggest %}data-sheet-autoopen{% endif %}>
+        <div class="sheet__body">
+          <div class="sheet__handle" aria-hidden="true"></div>
+          <div class="sheet__head">
+            <h2 class="sheet__title" id="suggest-sheet-title" tabindex="-1" autofocus>شاید این‌ها را هم بخواهید</h2>
+            {% include "includes/rail_nav.html" with target="suggest-rail" %}
+            <button type="button" class="icon-btn" data-sheet-close aria-label="بستن">{% include "includes/ui_icon.html" with name="x" %}</button>
+          </div>
+          {% if totals.free_shipping_target and totals.shipping_cost and not totals.free_shipping %}
+            <p class="sheet__lead">با <strong>{{ totals.amount_to_free_shipping|fa_number }}</strong> تومان خرید بیشتر، ارسال سفارش رایگان می‌شود.</p>
+          {% else %}
+            <p class="sheet__lead">پیش از پرداخت، نگاهی به این کالاها بیندازید.</p>
+          {% endif %}
+          <div class="rail" id="suggest-rail">
+            {% for product in suggestions %}
+              <div class="suggest-card">
+                {% include "includes/product_card.html" %}
+                <form method="post" action="{% url 'cart:add' product.pk %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{% url 'cart:detail' %}?suggest=1">
+                  <button type="submit" class="btn btn--outline btn--small btn--block">
+                    {% include "includes/ui_icon.html" with name="plus" %}افزودن به سبد
+                  </button>
+                </form>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="sheet__actions">
+            <a class="btn btn--primary btn--lg btn--block" href="{% url 'orders:checkout' %}">ادامه فرایند خرید</a>
+            <button type="button" class="btn btn--ghost btn--block" data-sheet-close>بازگشت به سبد</button>
+          </div>
+        </div>
+      </dialog>
     {% endif %}
   {% else %}
     <h1 class="page-title page-title--spaced">سبد خرید</h1>

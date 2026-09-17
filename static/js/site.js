@@ -105,6 +105,8 @@ document.querySelectorAll('dialog.sheet').forEach((sheet) => {
   sheet.querySelectorAll('[data-sheet-close]').forEach((button) => {
     button.addEventListener('click', () => sheet.close());
   });
+  // Reopened after a reload (adding a suggestion) so the flow carries on.
+  if (sheet.hasAttribute('data-sheet-autoopen') && typeof sheet.showModal === 'function') sheet.showModal();
 });
 
 // Prev/next buttons for horizontal rails. In RTL the "next" items sit to the

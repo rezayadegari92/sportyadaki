@@ -6,13 +6,54 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import CarBrand, CarModel, Product, ProductRating
+from .models import CarBrand, CarModel, Product, ProductCategory, ProductRating
+from .services import related_products
 
 
 def make_product(slug, *car_models, status=Product.Status.PUBLISHED, **fields):
     product = Product.objects.create(name=fields.pop('name', slug), slug=slug, status=status, **fields)
     product.car_models.add(*car_models)
     return product
+
+
+class RelatedProductTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.pride = CarModel.objects.create(name='پراید', slug='pride')
+        cls.tiba = CarModel.objects.create(name='تیبا', slug='tiba')
+        cls.brakes = ProductCategory.objects.create(name='ترمز', slug='brakes')
+        cls.filters = ProductCategory.objects.create(name='فیلتر', slug='filters')
+
+        cls.subject = cls.make('subject', cls.brakes, cls.pride)
+        cls.same_both = cls.make('same-both', cls.brakes, cls.pride)
+        cls.same_category = cls.make('same-category', cls.brakes, cls.tiba)
+        cls.same_car_model = cls.make('same-car-model', cls.filters, cls.pride)
+        cls.unrelated = cls.make('unrelated', cls.filters, cls.tiba)
+
+    @classmethod
+    def make(cls, slug, category, car_model, **fields):
+        product = make_product(slug, car_model, **fields)
+        product.categories.add(category)
+        return product
+
+    def test_closest_match_comes_first_then_category_then_car_model(self):
+        self.assertEqual(
+            related_products(self.subject),
+            [self.same_both, self.same_category, self.same_car_model],
+        )
+
+    def test_the_product_itself_and_unpublished_ones_are_left_out(self):
+        draft = self.make('draft-sibling', self.brakes, self.pride, status=Product.Status.DRAFT)
+        related = related_products(self.subject)
+        self.assertNotIn(self.subject, related)
+        self.assertNotIn(draft, related)
+        self.assertNotIn(self.unrelated, related)
+
+    def test_limit_caps_the_rail(self):
+        self.assertEqual(len(related_products(self.subject, limit=2)), 2)
+
+    def test_product_without_category_or_car_model_has_no_matches(self):
+        self.assertEqual(related_products(make_product('lonely')), [])
 
 
 class ProductKindQueryTests(TestCase):

@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from .admin_display import thumbnail
-from .models import HeroBanner, HeroBannerImage, Page, SiteSettings
+from .admin_display import thumbnail, toman
+from .models import CheckoutSuggestion, HeroBanner, HeroBannerImage, Page, SiteSettings
 
 
 @admin.register(SiteSettings)
@@ -64,6 +64,27 @@ class HeroBannerAdmin(admin.ModelAdmin):
     @admin.display(description='تعداد قاب‌ها')
     def slide_count(self, obj):
         return len(obj.slideshow_images)
+
+
+@admin.register(CheckoutSuggestion)
+class CheckoutSuggestionAdmin(admin.ModelAdmin):
+    list_display = ('thumb', 'product', 'product_price', 'is_active', 'position')
+    list_display_links = ('thumb', 'product')
+    list_editable = ('is_active', 'position')
+    list_filter = ('is_active',)
+    search_fields = ('product__name', 'product__sku')
+    autocomplete_fields = ('product',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('product')
+
+    @admin.display(description='تصویر')
+    def thumb(self, obj):
+        return thumbnail(obj.product.image)
+
+    @admin.display(description='قیمت')
+    def product_price(self, obj):
+        return toman(obj.product.price)
 
 
 @admin.register(Page)

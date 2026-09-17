@@ -5,7 +5,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from catalog.models import Product
-from core.models import SiteSettings
+from core.models import CheckoutSuggestion, SiteSettings
 
 from .models import Cart, CartItem
 from .services import calculate_totals
@@ -49,6 +49,19 @@ class ShippingAndTotalsTests(TestCase):
         self.assertEqual(expensive.shipping, 0)
         self.assertTrue(expensive.free_shipping)
 
+    def test_free_shipping_progress_tracks_the_amount_threshold(self):
+        self.settings.free_shipping_min_amount = Decimal('1000000')
+        self.settings.save()
+
+        quarter_way = self.totals_for((250_000, 1))
+        self.assertEqual(quarter_way.free_shipping_percent, 25)
+
+        self.cart.items.all().delete()
+        self.assertEqual(self.totals_for((1_200_000, 1)).free_shipping_percent, 100)
+
+    def test_progress_is_zero_while_the_amount_rule_is_off(self):
+        self.assertEqual(self.totals_for((250_000, 1)).free_shipping_percent, 0)
+
     def test_tax_rate_applies_to_subtotal(self):
         self.settings.tax_rate = Decimal('10')
         self.settings.save()
@@ -83,6 +96,26 @@ class CartViewTests(TestCase):
         cart = Cart.objects.get(user=user)
         self.assertEqual(list(cart.items.values_list('product__slug', 'quantity')), [('limited', 1)])
         self.assertFalse(Cart.objects.filter(user__isnull=True).exists())
+
+    def test_checkout_suggestions_skip_what_is_in_the_cart_or_unbuyable(self):
+        offered = make_product('offered')
+        CheckoutSuggestion.objects.create(product=offered, position=1)
+        CheckoutSuggestion.objects.create(product=self.sold_out, position=2)
+        CheckoutSuggestion.objects.create(product=self.limited, position=3)
+        CheckoutSuggestion.objects.create(product=make_product('paused'), position=4, is_active=False)
+        self.add(self.limited, 1)  # already in the cart, so it drops off the rail
+
+        suggestions = self.client.get(reverse('cart:detail')).context['suggestions']
+        self.assertEqual(suggestions, [offered])
+
+    def test_suggestion_can_be_added_without_leaving_the_cart(self):
+        offered = make_product('offered')
+        CheckoutSuggestion.objects.create(product=offered)
+        cart_url = reverse('cart:detail')
+
+        response = self.client.post(reverse('cart:add', args=[offered.pk]), {'quantity': 1, 'next': cart_url})
+        self.assertRedirects(response, cart_url)
+        self.assertTrue(CartItem.objects.filter(product=offered).exists())
 
     def test_items_of_another_cart_are_not_reachable(self):
         self.add(self.limited, 1)

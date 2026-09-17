@@ -4,10 +4,13 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from catalog.models import Product
+from core.models import CheckoutSuggestion
 from core.text import to_ascii_digits
 
 from . import services
 from .models import CartItem
+
+SUGGESTION_LIMIT = 12
 
 
 def _quantity(value, default):
@@ -36,7 +39,24 @@ def cart_detail(request):
         'totals': services.calculate_totals(items),
         'problems': problems,
         'problem_item_ids': {problem['item'].pk for problem in problems},
+        'suggestions': _checkout_suggestions(items),
     })
+
+
+def _checkout_suggestions(items):
+    """The staff-picked add-ons, minus what is already in the cart or unbuyable.
+
+    Each card offers a one-click add, so anything out of stock or without a
+    price is dropped rather than shown with a button that would fail.
+    """
+    suggestions = (
+        CheckoutSuggestion.objects
+        .filter(is_active=True, product__status=Product.Status.PUBLISHED)
+        .exclude(product__in=[item.product_id for item in items])
+        .select_related('product', 'product__part_brand')
+    )
+    products = [suggestion.product for suggestion in suggestions]
+    return [product for product in products if services.available_quantity(product) != 0][:SUGGESTION_LIMIT]
 
 
 @require_POST

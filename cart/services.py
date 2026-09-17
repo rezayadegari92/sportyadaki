@@ -155,10 +155,20 @@ class CartTotals:
     shipping_cost: Decimal  # the configured fixed cost, for "free shipping" display
     items_to_free_shipping: int | None  # items still needed for free shipping (None: rule off or met)
     amount_to_free_shipping: Decimal | None  # amount still needed for free shipping
+    free_shipping_target: Decimal | None  # the amount threshold itself (None: rule off)
 
     @property
     def free_shipping(self):
         return self.item_count > 0 and self.shipping == 0 and self.shipping_cost > 0
+
+    @property
+    def free_shipping_percent(self):
+        """How far the cart is toward the free-shipping amount, as 0–100."""
+        if not self.free_shipping_target:
+            return 0
+        if self.shipping == 0:
+            return 100
+        return min(100, int(self.subtotal * 100 / self.free_shipping_target))
 
 
 def calculate_totals(items, site_settings=None):
@@ -179,4 +189,5 @@ def calculate_totals(items, site_settings=None):
         item_count=count, subtotal=subtotal, shipping=shipping, tax=tax, total=subtotal + shipping + tax,
         shipping_cost=site_settings.shipping_cost,
         items_to_free_shipping=items_to_free, amount_to_free_shipping=amount_to_free,
+        free_shipping_target=site_settings.free_shipping_min_amount,
     )

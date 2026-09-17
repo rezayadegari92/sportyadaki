@@ -45,10 +45,22 @@
       <aside class="panel summary" aria-labelledby="summary-title">
         <h2 class="summary__title" id="summary-title">خلاصه سفارش</h2>
         {% include "includes/order_totals.html" with subtotal=totals.subtotal shipping=totals.shipping tax=totals.tax total=totals.total %}
-        {% if totals.items_to_free_shipping > 0 %}
+        {% if totals.free_shipping_target and totals.shipping_cost %}
+          <div class="ship-bar{% if totals.free_shipping %} ship-bar--done{% endif %}">
+            <div class="ship-bar__track" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                 aria-valuenow="{{ totals.free_shipping_percent }}" aria-label="پیشرفت تا ارسال رایگان">
+              <span class="ship-bar__fill" style="width: {{ totals.free_shipping_percent }}%"></span>
+            </div>
+            <p class="ship-bar__text">
+              {% if totals.free_shipping %}
+                {% include "includes/ui_icon.html" with name="check" %}<span>ارسال این سفارش رایگان است.</span>
+              {% else %}
+                {% include "includes/ui_icon.html" with name="truck" %}<span>تا ارسال رایگان <strong>{{ totals.amount_to_free_shipping|fa_number }}</strong> تومان مانده است.</span>
+              {% endif %}
+            </p>
+          </div>
+        {% elif totals.items_to_free_shipping > 0 %}
           <p class="summary__hint">{% include "includes/ui_icon.html" with name="truck" %}با {{ totals.items_to_free_shipping|fa_digits }} کالای دیگر، ارسال رایگان می‌شود.</p>
-        {% elif totals.amount_to_free_shipping > 0 %}
-          <p class="summary__hint">{% include "includes/ui_icon.html" with name="truck" %}با {{ totals.amount_to_free_shipping|fa_number }} تومان خرید بیشتر، ارسال رایگان می‌شود.</p>
         {% elif totals.free_shipping %}
           <p class="summary__hint summary__hint--ok">{% include "includes/ui_icon.html" with name="check" %}ارسال این سفارش رایگان است.</p>
         {% endif %}
@@ -60,6 +72,31 @@
         {% endif %}
       </aside>
     </div>
+
+    {% if suggestions %}
+      <section class="section" aria-labelledby="suggest-title" data-reveal>
+        <div class="section__head">
+          <h2 class="section__title" id="suggest-title">
+            <span class="section__icon">{% include "includes/ui_icon.html" with name="package" %}</span>شاید این‌ها را هم بخواهید
+          </h2>
+          {% include "includes/rail_nav.html" with target="suggest-rail" %}
+        </div>
+        <div class="rail" id="suggest-rail">
+          {% for product in suggestions %}
+            <div class="suggest-card">
+              {% include "includes/product_card.html" %}
+              <form method="post" action="{% url 'cart:add' product.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button type="submit" class="btn btn--outline btn--small btn--block">
+                  {% include "includes/ui_icon.html" with name="plus" %}افزودن به سبد
+                </button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
 
     {% if not problems %}
       {# Phones: total and next step stay within thumb reach, above the tab bar. #}

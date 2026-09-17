@@ -828,6 +828,27 @@ a.chip:hover, a.chip:active { background: var(--accent); color: #fff; }
 .summary__hint--ok { background: #e8f7ee; color: #146c3a; }
 .summary__hint--ok .icon { color: #146c3a; }
 .summary__secure { color: var(--muted); font-size: var(--text-xs); text-align: center; }
+
+/* Free-shipping progress: how close the cart is to the amount threshold. */
+.ship-bar { display: grid; gap: 8px; padding: 12px; border-radius: var(--radius-sm); background: var(--surface-2); }
+.ship-bar__track { height: 8px; border-radius: var(--radius-pill); background: var(--line); overflow: hidden; }
+.ship-bar__fill {
+  display: block; height: 100%; border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+  transition: width var(--dur-3) var(--ease-out);
+}
+.ship-bar__text { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: var(--text-xs); font-weight: 700; }
+.ship-bar__text .icon { flex: none; width: 18px; height: 18px; color: var(--accent); }
+.ship-bar__text strong { color: var(--accent-dark); }
+.ship-bar--done { background: #e8f7ee; }
+.ship-bar--done .ship-bar__fill { background: #1a9350; }
+.ship-bar--done .ship-bar__text, .ship-bar--done .ship-bar__text .icon { color: #146c3a; }
+@media (prefers-reduced-motion: reduce) { .ship-bar__fill { transition: none; } }
+
+/* Checkout cross-sell: a product card with a one-click add under it. */
+.suggest-card { display: grid; gap: 8px; align-content: start; }
+.suggest-card .btn { gap: 6px; }
+.suggest-card .btn .icon { width: 16px; height: 16px; }
 .totals { margin: 0; display: grid; gap: 8px; font-size: var(--text-sm); }
 .totals__row { display: flex; justify-content: space-between; gap: 12px; }
 .totals dt { color: var(--muted); }

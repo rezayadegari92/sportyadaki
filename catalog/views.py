@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 from cart.services import available_quantity
 
 from .models import CarBrand, CarModel, PartBrand, Product, ProductRating
+from .services import related_products
 
 PAGE_SIZE = 24
 
@@ -35,6 +36,7 @@ def product_detail(request, slug):
         'can_buy': available != 0,
         'max_quantity': available,  # None: no stock limit
         'car_models': product.car_models.select_related('brand'),
+        'related_products': related_products(product),
         'user_rating': user_rating,
         # Highest first: the star widget lays them out with row-reverse.
         'star_choices': [5, 4, 3, 2, 1],

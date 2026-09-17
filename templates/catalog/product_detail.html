@@ -112,5 +112,19 @@
     {{ product.description|safe }}
   </section>
   {% endif %}
+
+  {% if related_products %}
+  <section class="section" aria-labelledby="related-title" data-reveal>
+    <div class="section__head">
+      <h2 class="section__title" id="related-title">
+        <span class="section__icon">{% include "includes/ui_icon.html" with name="sparkles" %}</span>محصولات مشابه
+      </h2>
+      {% include "includes/rail_nav.html" with target="related-rail" %}
+    </div>
+    <div class="rail" id="related-rail">
+      {% for product in related_products %}{% include "includes/product_card.html" %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
 </div>
 {% endblock %}

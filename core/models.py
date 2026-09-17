@@ -127,6 +127,29 @@ class HeroBannerImage(models.Model):
         return f'تصویر اسلایدشو {self.banner}'
 
 
+class CheckoutSuggestion(models.Model):
+    """A product the staff offers the customer while they review their cart.
+
+    Unlike the related products on a product page, this list is picked by hand:
+    it is the add-on the store wants in front of every buyer before checkout.
+    """
+
+    product = models.OneToOneField(
+        'catalog.Product', on_delete=models.CASCADE,
+        related_name='checkout_suggestion', verbose_name='محصول',
+    )
+    is_active = models.BooleanField('فعال', default=True)
+    position = models.PositiveSmallIntegerField('ترتیب', default=0)
+
+    class Meta:
+        ordering = ['position', 'pk']
+        verbose_name = 'پیشنهاد تکمیل خرید'
+        verbose_name_plural = 'پیشنهادهای تکمیل خرید'
+
+    def __str__(self):
+        return str(self.product)
+
+
 class Page(models.Model):
     """Simple static page (about us, terms, ...)."""
 

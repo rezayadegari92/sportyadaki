@@ -31,7 +31,7 @@
         <tbody>
           {% for row in dashboard.recent_orders %}
             <tr>
-              <td><a href="{{ row.url }}">#{{ row.order.pk|fa_digits }}</a></td>
+              <td><a href="{{ row.url }}"><bdi>{{ row.order.number }}</bdi></a></td>
               <td>{{ row.name }}</td>
               <td><span class="sy-badge sy-badge--{{ row.tone }}">{{ row.order.get_status_display }}</span></td>
               <td>{{ row.order.total_amount|fa_number }} <small class="sy-muted">تومان</small></td>

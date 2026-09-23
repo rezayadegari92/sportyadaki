@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load sporty %}
 
-{% block title %}سفارش #{{ order.pk }} | اسپرت یدکی{% endblock %}
+{% block title %}سفارش {{ order.number }} | اسپرت یدکی{% endblock %}
 
 {% block content %}
 <div class="container">
   <nav class="breadcrumbs" aria-label="مسیر">
-    <a href="{% url 'accounts:dashboard' %}">حساب من</a> / <a href="{% url 'accounts:orders' %}">سفارش‌ها</a> / <span>#{{ order.pk|fa_digits }}</span>
+    <a href="{% url 'accounts:dashboard' %}">حساب من</a> / <a href="{% url 'accounts:orders' %}">سفارش‌ها</a> / <span><bdi>{{ order.number }}</bdi></span>
   </nav>
 
   <div class="account-layout">
@@ -15,7 +15,7 @@
       <section class="panel">
         <div class="order-head">
           <div>
-            <h1 class="page-title">سفارش #{{ order.pk|fa_digits }}</h1>
+            <h1 class="page-title">سفارش <bdi>{{ order.number }}</bdi></h1>
             <p class="meta">ثبت‌شده در {{ order.created_at|date:"Y/m/d H:i" }}</p>
           </div>
           <span class="status status--{{ order.status }}">{{ order.get_status_display }}</span>

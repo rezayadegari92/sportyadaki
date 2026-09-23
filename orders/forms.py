@@ -22,8 +22,8 @@ class CheckoutForm(forms.Form):
 
 class TrackOrderForm(forms.Form):
     order_number = forms.CharField(
-        label='شماره سفارش', max_length=20,
-        widget=forms.TextInput(attrs={'inputmode': 'numeric', 'autocomplete': 'off', 'placeholder': 'مثلاً ۱۲۴۵'}),
+        label='شماره سفارش', max_length=30,
+        widget=forms.TextInput(attrs={'autocomplete': 'off', 'placeholder': 'مثلاً ORD-20260923-0001'}),
     )
     phone = forms.CharField(
         label='شماره موبایل', max_length=20,

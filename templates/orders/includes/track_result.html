@@ -7,7 +7,7 @@
     {# Only status and shipping details: no names, addresses or amounts on this public page. #}
     <div class="track-card">
       <div class="track-card__head">
-        <div><span class="meta">سفارش</span> <strong>#{{ order.pk|fa_digits }}</strong></div>
+        <div><span class="meta">سفارش</span> <strong><bdi>{{ order.number }}</bdi></strong></div>
         <span class="status status--{{ order.status }}">{{ order.get_status_display }}</span>
       </div>
       {% include "orders/includes/progress.html" %}

@@ -5,7 +5,7 @@ import logging
 
 from core.models import SiteSettings
 from core.templatetags.sporty import fa_number
-from core.text import normalize_iran_mobile, to_persian_digits
+from core.text import normalize_iran_mobile
 
 from .sms import get_sms_service
 
@@ -30,28 +30,29 @@ def _customer_phone(order):
 
 
 def order_paid(order):
-    number, amount = to_persian_digits(order.pk), fa_number(order.total_amount)
-    _send(_customer_phone(order), f'اسپرت یدکی: سفارش #{number} به مبلغ {amount} تومان پرداخت شد و در صف آماده‌سازی است.')
+    # The number stays in ASCII: the customer may need to type it back when tracking.
+    number, amount = order.number, fa_number(order.total_amount)
+    _send(_customer_phone(order), f'اسپرت یدکی: سفارش {number} به مبلغ {amount} تومان پرداخت شد و در صف آماده‌سازی است.')
     # Staff alert goes to the store's number from site settings.
-    _send(SiteSettings.load().phone, f'سفارش جدید #{number} به مبلغ {amount} تومان پرداخت شد.')
+    _send(SiteSettings.load().phone, f'سفارش جدید {number} به مبلغ {amount} تومان پرداخت شد.')
 
 
 def order_status_changed(order):
     from orders.models import Order
 
-    number = to_persian_digits(order.pk)
+    number = order.number
     if order.status == Order.Status.PROCESSING:
-        message = f'اسپرت یدکی: سفارش #{number} در حال آماده‌سازی است.'
+        message = f'اسپرت یدکی: سفارش {number} در حال آماده‌سازی است.'
     elif order.status == Order.Status.SHIPPED:
-        message = f'اسپرت یدکی: سفارش #{number} ارسال شد.'
+        message = f'اسپرت یدکی: سفارش {number} ارسال شد.'
         if order.carrier:
             message += f' روش ارسال: {order.get_carrier_display()}.'
         if order.tracking_code:
             message += f' کد رهگیری: {order.tracking_code}'
     elif order.status == Order.Status.DELIVERED:
-        message = f'اسپرت یدکی: سفارش #{number} تحویل شد. از خرید شما سپاسگزاریم.'
+        message = f'اسپرت یدکی: سفارش {number} تحویل شد. از خرید شما سپاسگزاریم.'
     elif order.status == Order.Status.CANCELLED:
-        message = f'اسپرت یدکی: سفارش #{number} لغو شد. برای پیگیری با ما در تماس باشید.'
+        message = f'اسپرت یدکی: سفارش {number} لغو شد. برای پیگیری با ما در تماس باشید.'
     else:
         return
     _send(_customer_phone(order), message)

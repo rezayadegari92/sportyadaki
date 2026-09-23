@@ -24,7 +24,7 @@ def start_payment(request, order):
         result = gateway.request_payment(
             payment=payment,
             callback_url=request.build_absolute_uri(reverse('payments:callback')),
-            description=f'سفارش #{order.pk} اسپرت یدکی',
+            description=f'سفارش {order.number} اسپرت یدکی',
             mobile=order.customer.phone if order.customer_id else '',
         )
     except PaymentGatewayError as error:

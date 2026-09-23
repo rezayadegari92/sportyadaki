@@ -1,8 +1,13 @@
 from django.conf import settings
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 
 from core.text import normalize_iran_mobile, to_ascii_digits
+
+# Customer-facing order numbers: ORD-YYYYMMDD-0001, the sequence restarting
+# each day. The date is the store's local day (TIME_ZONE), not UTC.
+ORDER_NUMBER_PREFIX = 'ORD'
+ORDER_NUMBER_DIGITS = 4
 
 
 class Carrier(models.TextChoices):
@@ -24,20 +29,23 @@ class OrderQuerySet(models.QuerySet):
 
         Any mismatch returns None, same as a missing order, so the public form
         can't be used to find out which order numbers exist.
+
+        Bare digits still resolve by id: orders imported from WooCommerce were
+        only ever given their id, and customers may quote an older receipt.
         """
-        number = to_ascii_digits(order_number).strip().lstrip('#')
+        number = to_ascii_digits(order_number).strip().lstrip('#').replace(' ', '').upper()
         phone = normalize_iran_mobile(phone)
-        if not number.isdecimal() or not phone:
+        if not number or not phone:
             return None
-        order = self.filter(pk=int(number)).prefetch_related('addresses').first()
+        lookup = {'pk': int(number)} if number.isdecimal() else {'number': number}
+        order = self.filter(**lookup).prefetch_related('addresses').first()
         if order and any(normalize_iran_mobile(a.phone) == phone for a in order.addresses.all()):
             return order
         return None
 
 
 class Order(models.Model):
-    """A customer order. The primary key is the order number customers see
-    (imported WooCommerce orders keep their original id).
+    """A customer order, identified to customers by `number` (ORD-YYYYMMDD-0001).
 
     Status changes with side effects (stock, invoice, SMS) go through
     orders.services.change_status(), never by assigning `status` directly.
@@ -64,6 +72,7 @@ class Order(models.Model):
     }
     PAID_STATUSES = {Status.PAID, Status.PROCESSING, Status.SHIPPED, Status.DELIVERED}
 
+    number = models.CharField('شماره سفارش', max_length=30, unique=True, editable=False)
     status = models.CharField('وضعیت', max_length=20, choices=Status, default=Status.PENDING, db_index=True)
     currency = models.CharField('واحد پول', max_length=10, default='IRT')
     customer = models.ForeignKey(
@@ -113,7 +122,30 @@ class Order(models.Model):
         verbose_name_plural = 'سفارش‌ها'
 
     def __str__(self):
-        return f'سفارش #{self.pk}'
+        return f'سفارش {self.number}'
+
+    def save(self, *args, **kwargs):
+        if self.number:
+            return super().save(*args, **kwargs)
+        # Two orders placed in the same moment can pick the same sequence. The
+        # unique index rejects the loser, which then retries with the next one.
+        for _ in range(5):
+            self.number = self._next_number()
+            try:
+                with transaction.atomic():
+                    return super().save(*args, **kwargs)
+            except IntegrityError:
+                if not Order.objects.filter(number=self.number).exists():
+                    raise  # something else collided; don't mask it behind a retry
+        raise IntegrityError(f'Could not allocate an order number after 5 tries: {self.number}')
+
+    def _next_number(self):
+        day = timezone.localtime(self.created_at or timezone.now()).strftime('%Y%m%d')
+        prefix = f'{ORDER_NUMBER_PREFIX}-{day}-'
+        taken = Order.objects.filter(number__startswith=prefix).values_list('number', flat=True)
+        # Parsed rather than sorted as text, so the run survives passing 9999.
+        sequence = max((int(number.removeprefix(prefix)) for number in taken), default=0) + 1
+        return f'{prefix}{sequence:0{ORDER_NUMBER_DIGITS}d}'
 
     def can_transition_to(self, status):
         return status in self.TRANSITIONS.get(self.status, set())

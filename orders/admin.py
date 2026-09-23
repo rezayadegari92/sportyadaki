@@ -1,9 +1,7 @@
 from django import forms
 from django.contrib import admin, messages
-from django.utils.html import format_html
 
 from core.admin_display import ORDER_STATUS_TONES, badge, order_customer_name, toman
-from core.text import to_persian_digits
 from payments.models import Payment
 
 from . import services
@@ -84,7 +82,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ('number', 'customer_name', 'status_badge', 'total', 'carrier', 'tracking_code', 'created_at')
     list_display_links = ('number', 'customer_name')
     list_filter = ('status', 'carrier', 'created_at')
-    search_fields = ('=id', 'addresses__phone', 'addresses__last_name', 'addresses__first_name', 'tracking_code', 'customer__phone')
+    search_fields = ('number', '=id', 'addresses__phone', 'addresses__last_name', 'addresses__first_name', 'tracking_code', 'customer__phone')
     date_hierarchy = 'created_at'
     autocomplete_fields = ('customer',)
     inlines = [OrderItemInline, OrderAddressInline, PaymentInline, InvoiceInline]
@@ -152,10 +150,6 @@ class OrderAdmin(admin.ModelAdmin):
     @admin.action(description='لغو سفارش‌های انتخاب‌شده')
     def cancel_orders(self, request, queryset):
         self._bulk_change(request, queryset, Order.Status.CANCELLED)
-
-    @admin.display(description='سفارش', ordering='pk')
-    def number(self, obj):
-        return format_html('<strong>#{}</strong>', to_persian_digits(obj.pk))
 
     @admin.display(description='مشتری')
     def customer_name(self, obj):

@@ -8,7 +8,7 @@
   <div class="panel result">
     <p class="notice notice--warning">این صفحه شبیه‌ساز درگاه پرداخت است و فقط در محیط توسعه کار می‌کند. پس از اتصال درگاه واقعی، مشتری به صفحه بانک هدایت می‌شود.</p>
     <span class="result__icon">{% include "includes/ui_icon.html" with name="lock" %}</span>
-    <h1 class="result__title">پرداخت سفارش #{{ payment.order_id|fa_digits }}</h1>
+    <h1 class="result__title">پرداخت سفارش <bdi>{{ payment.order.number }}</bdi></h1>
     <p>مبلغ: <strong>{{ payment.amount|fa_number }} تومان</strong></p>
     <div class="result__actions">
       <a class="btn btn--primary btn--lg" href="{{ success_url }}">پرداخت موفق</a>

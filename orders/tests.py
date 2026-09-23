@@ -1,11 +1,14 @@
+from datetime import datetime, timezone as dt_timezone
 from types import SimpleNamespace
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.cache import cache
+from django.db import IntegrityError
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from catalog.models import Product
 from notifications.sms.console import ConsoleSMSService
@@ -20,6 +23,40 @@ def make_order(status=Order.Status.PENDING, phone='09391098198', **fields):
     OrderAddress.objects.create(order=order, address_type='billing', phone=phone, first_name='علی')
     OrderAddress.objects.create(order=order, address_type='shipping', phone=phone, first_name='علی')
     return order
+
+
+class OrderNumberTests(TestCase):
+    @staticmethod
+    def on(day, hour=10):
+        return timezone.make_aware(datetime(2026, 9, day, hour, 0))
+
+    def test_number_follows_the_prefix_date_sequence_pattern(self):
+        order = Order.objects.create(created_at=self.on(23))
+        self.assertEqual(order.number, 'ORD-20260923-0001')
+
+    def test_sequence_counts_up_within_a_day_and_resets_the_next(self):
+        numbers = [
+            Order.objects.create(created_at=self.on(23, 9)).number,
+            Order.objects.create(created_at=self.on(23, 18)).number,
+            Order.objects.create(created_at=self.on(24, 1)).number,
+        ]
+        self.assertEqual(numbers, ['ORD-20260923-0001', 'ORD-20260923-0002', 'ORD-20260924-0001'])
+
+    def test_the_day_is_the_stores_local_day_not_utc(self):
+        # 21:00 UTC on the 23rd is already 00:30 on the 24th in Tehran.
+        order = Order.objects.create(created_at=datetime(2026, 9, 23, 21, 0, tzinfo=dt_timezone.utc))
+        self.assertEqual(order.number, 'ORD-20260924-0001')
+
+    def test_number_is_kept_once_assigned(self):
+        order = Order.objects.create(created_at=self.on(23))
+        order.status = Order.Status.PAID
+        order.save()
+        self.assertEqual(Order.objects.get(pk=order.pk).number, 'ORD-20260923-0001')
+
+    def test_numbers_are_unique(self):
+        first = Order.objects.create(created_at=self.on(23))
+        with self.assertRaises(IntegrityError):
+            Order.objects.create(created_at=self.on(23), number=first.number)
 
 
 class OrderTrackingLookupTests(TestCase):
@@ -45,6 +82,12 @@ class OrderTrackingLookupTests(TestCase):
     def test_rejects_garbage_input(self):
         self.assertIsNone(Order.objects.find_for_tracking('abc', '09391098198'))
         self.assertIsNone(Order.objects.find_for_tracking(str(self.order.pk), ''))
+        self.assertIsNone(Order.objects.find_for_tracking('ORD-20260923-9999', '09391098198'))
+
+    def test_matches_the_printed_order_number_however_it_is_typed(self):
+        for typed in (self.order.number, self.order.number.lower(), f' {self.order.number} '):
+            with self.subTest(typed=typed):
+                self.assertEqual(Order.objects.find_for_tracking(typed, '09391098198'), self.order)
 
     def test_tracking_url_follows_carrier(self):
         self.assertTrue(self.order.tracking_url)

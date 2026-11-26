@@ -195,3 +195,17 @@ class AdminPanelTests(TestCase):
                     self.assertIn(self.client.get(url).status_code, (200, 403))
         product = Product.objects.first()
         self.assertEqual(self.client.get(reverse('admin:catalog_product_change', args=[product.pk])).status_code, 200)
+
+    def test_product_images_show_in_list_and_change_form(self):
+        product = Product.objects.first()
+        product.image = 'products/2026/11/main.jpg'
+        product.save()
+        product.gallery.create(image='products/2026/11/side.jpg')
+
+        changelist = self.client.get(reverse('admin:catalog_product_changelist'))
+        self.assertContains(changelist, 'src="/media/products/2026/11/main.jpg"')
+        self.assertContains(changelist, '+۱')  # gallery image count
+
+        change = self.client.get(reverse('admin:catalog_product_change', args=[product.pk]))
+        self.assertContains(change, 'class="sy-preview" src="/media/products/2026/11/main.jpg"')
+        self.assertContains(change, 'class="sy-preview" src="/media/products/2026/11/side.jpg"')

@@ -33,6 +33,7 @@
       </a>
       <nav class="nav" aria-label="منوی اصلی">
         <a href="{% url 'core:home' %}"{% if view == 'core:home' %} class="is-active" aria-current="page"{% endif %}>خانه</a>
+        <a href="{% url 'catalog:products' %}"{% if view == 'catalog:products' %} class="is-active" aria-current="page"{% endif %}>لوازم یدکی</a>
         <a href="{% url 'catalog:sport' %}"{% if view == 'catalog:sport' %} class="is-active" aria-current="page"{% endif %}>لوازم اسپرت</a>
         <a href="{% url 'catalog:accessories' %}"{% if view == 'catalog:accessories' %} class="is-active" aria-current="page"{% endif %}>اکسسوری</a>
         <a href="{% url 'core:home' %}#brands"{% if view == 'catalog:car_brand' or view == 'catalog:car_model' %} class="is-active"{% endif %}>برندهای خودرو</a>
@@ -75,6 +76,7 @@
         <nav aria-labelledby="footer-links-title">
           <p class="site-footer__heading" id="footer-links-title">دسترسی سریع</p>
           <ul class="site-footer__links">
+            <li><a href="{% url 'catalog:products' %}">لوازم یدکی</a></li>
             <li><a href="{% url 'catalog:sport' %}">لوازم اسپرت</a></li>
             <li><a href="{% url 'catalog:accessories' %}">اکسسوری</a></li>
             <li><a href="{% url 'core:home' %}#brands">برندهای خودرو</a></li>

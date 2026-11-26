@@ -117,6 +117,7 @@ PARAGRAPH = (
 
 
 def banners():
+    products_url = reverse('catalog:products')
     sport_url, accessories_url = reverse('catalog:sport'), reverse('catalog:accessories')
     return [
         {
@@ -125,7 +126,7 @@ def banners():
             'content_side': HeroBanner.ContentSide.LEFT,
             'title': 'لوازم اسپرت و اکسسوری خودرو',
             'subtitle': 'قطعات اسپرت اورجینال برای خودروهای ایرانی و چینی با ارسال به سراسر کشور',
-            'primary_cta_label': 'مشاهده لوازم اسپرت', 'primary_cta_url': sport_url,
+            'primary_cta_label': 'مشاهده لوازم', 'primary_cta_url': products_url,
             'secondary_cta_label': 'برندهای خودرو', 'secondary_cta_url': '#brands',
         },
         {

@@ -10,11 +10,24 @@ ORDER_STATUS_TONES = {
 }
 
 
-def thumbnail(image, *, contain=False, wide=False):
-    classes = 'sy-thumb' + (' sy-thumb--contain' if contain else '') + (' sy-thumb--wide' if wide else '')
+def thumbnail(image, *, contain=False, wide=False, large=False):
+    classes = (
+        'sy-thumb' + (' sy-thumb--contain' if contain else '') + (' sy-thumb--wide' if wide else '')
+        + (' sy-thumb--large' if large else '')
+    )
     if not image:
         return format_html('<span class="{} sy-thumb--empty"></span>', classes)
     return format_html('<img class="{}" src="{}" alt="" loading="lazy">', classes, image.url)
+
+
+def image_preview(image):
+    """A saved image shown at a readable size on a change form, linked to the full file."""
+    if not image:
+        return format_html('<span class="sy-muted">{}</span>', 'هنوز تصویری بارگذاری نشده است.')
+    return format_html(
+        '<a href="{0}" target="_blank" rel="noopener"><img class="sy-preview" src="{0}" alt="" loading="lazy"></a>',
+        image.url,
+    )
 
 
 def badge(label, tone):

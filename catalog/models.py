@@ -124,6 +124,17 @@ class ManufactureYear(Term):
 
 # Names of the Product boolean fields behind the sport / accessory browse pages.
 PRODUCT_KINDS = ('sport', 'accessory')
+# The /products/ browse page: everything that is neither sport nor accessory.
+OTHER_KIND = 'other'
+
+
+def kind_condition(kind, prefix=''):
+    """Q for products of `kind`; `prefix` (e.g. 'products__') filters through a relation."""
+    if kind == OTHER_KIND:
+        return Q(**{f'{prefix}{field}': False for field in PRODUCT_KINDS})
+    if kind not in PRODUCT_KINDS:
+        raise ValueError(f'Unknown product kind: {kind!r}')
+    return Q(**{f'{prefix}{kind}': True})
 
 
 def on_sale_condition():
@@ -142,10 +153,8 @@ class ProductQuerySet(models.QuerySet):
         return self.filter(status=Product.Status.PUBLISHED)
 
     def of_kind(self, kind):
-        """Sport or accessory products, whether or not they fit a specific car."""
-        if kind not in PRODUCT_KINDS:
-            raise ValueError(f'Unknown product kind: {kind!r}')
-        return self.filter(**{kind: True})
+        """Sport, accessory or other products, whether or not they fit a specific car."""
+        return self.filter(kind_condition(kind))
 
     def universal(self):
         """Parts not tied to any car model, i.e. fit any car."""

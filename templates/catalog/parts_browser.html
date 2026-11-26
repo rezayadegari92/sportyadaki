@@ -10,6 +10,7 @@
   <div class="browser-head">
     <h1 class="page-title">{{ title }}</h1>
     <nav class="kind-switch" aria-label="نوع محصول">
+      <a href="{% url 'catalog:products' %}"{% if kind == 'other' %} class="is-active" aria-current="page"{% endif %}>لوازم یدکی</a>
       <a href="{% url 'catalog:sport' %}"{% if kind == 'sport' %} class="is-active" aria-current="page"{% endif %}>لوازم اسپرت</a>
       <a href="{% url 'catalog:accessories' %}"{% if kind == 'accessory' %} class="is-active" aria-current="page"{% endif %}>اکسسوری</a>
     </nav>

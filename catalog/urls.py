@@ -13,4 +13,5 @@ urlpatterns = [
     path('brand/<str:brand_slug>/<str:slug>/', views.car_model_detail, name='car_model'),
     path('sport/', views.parts_browser, {'kind': 'sport'}, name='sport'),
     path('accessories/', views.parts_browser, {'kind': 'accessory'}, name='accessories'),
+    path('products/', views.parts_browser, {'kind': 'other'}, name='products'),
 ]

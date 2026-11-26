@@ -8,12 +8,12 @@ from django.views.decorators.http import require_POST
 
 from cart.services import available_quantity
 
-from .models import CarBrand, CarModel, PartBrand, Product, ProductRating
+from .models import CarBrand, CarModel, PartBrand, Product, ProductRating, kind_condition
 from .services import related_products
 
 PAGE_SIZE = 24
 
-KIND_TITLES = {'sport': 'لوازم اسپرت', 'accessory': 'اکسسوری و لوازم جانبی'}
+KIND_TITLES = {'sport': 'لوازم اسپرت', 'accessory': 'اکسسوری و لوازم جانبی', 'other': 'لوازم یدکی'}
 
 SORTS = {
     'newest': ('جدیدترین', ['-created_at']),
@@ -97,7 +97,7 @@ def car_model_detail(request, brand_slug, slug):
 
 
 def parts_browser(request, kind):
-    """Sport or accessory products, narrowed by car model, search and filters.
+    """Sport, accessory or other products, narrowed by car model, search and filters.
 
     Until a car model is picked, universal parts (no car model) are listed, as
     on the WordPress site; `?all=1` lists every product of the kind.
@@ -135,7 +135,7 @@ def parts_browser(request, kind):
         sort = 'newest'
     products = products.with_effective_price().order_by(*SORTS[sort][1], '-pk')
 
-    in_kind = Q(products__status=Product.Status.PUBLISHED, **{f'products__{kind}': True})
+    in_kind = Q(products__status=Product.Status.PUBLISHED) & kind_condition(kind, 'products__')
     car_models = CarModel.objects.annotate(product_count=Count('products', filter=in_kind)).order_by('name')
     query = request.GET.copy()
     query.pop('page', None)

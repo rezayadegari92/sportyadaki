@@ -1,8 +1,9 @@
 from django.contrib import admin
+from django.db.models import Count
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
-from core.admin_display import badge, stars, thumbnail, toman
+from core.admin_display import badge, image_preview, stars, thumbnail, toman
 from core.templatetags.sporty import fa_number
 
 from .models import (
@@ -50,6 +51,12 @@ class CarModelAdmin(TermAdmin):
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 0
+    fields = ('preview', 'image', 'alt', 'position')
+    readonly_fields = ('preview',)
+
+    @admin.display(description='پیش‌نمایش')
+    def preview(self, obj):
+        return image_preview(obj.image)
 
 
 class ProductRatingInline(admin.TabularInline):
@@ -69,10 +76,10 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'sku')
     prepopulated_fields = {'slug': ('name',)}
     autocomplete_fields = ('categories', 'car_models', 'part_brand', 'colors', 'makes', 'body_styles', 'years')
-    readonly_fields = ('total_sales', 'rating_count', 'average_rating', 'created_at', 'updated_at')
+    readonly_fields = ('image_preview', 'total_sales', 'rating_count', 'average_rating', 'created_at', 'updated_at')
     inlines = [ProductImageInline, ProductRatingInline]
     fieldsets = (
-        (None, {'fields': ('name', 'slug', 'status', 'image', 'short_description', 'description')}),
+        (None, {'fields': ('name', 'slug', 'status', 'image_preview', 'image', 'short_description', 'description')}),
         ('قیمت', {'fields': ('regular_price', 'sale_price', 'sale_starts_at', 'sale_ends_at')}),
         ('موجودی', {'fields': ('sku', 'global_unique_id', 'manage_stock', 'stock_quantity', 'stock_status')}),
         ('طبقه‌بندی', {
@@ -87,13 +94,27 @@ class ProductAdmin(admin.ModelAdmin):
         }),
         ('سایر', {
             'classes': ('collapse',),
-            'fields': ('is_virtual', 'is_downloadable', 'tax_status', 'tax_class', *readonly_fields),
+            'fields': (
+                'is_virtual', 'is_downloadable', 'tax_status', 'tax_class',
+                'total_sales', 'rating_count', 'average_rating', 'created_at', 'updated_at',
+            ),
         }),
     )
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(gallery_count=Count('gallery'))
+
     @admin.display(description='تصویر')
     def thumb(self, obj):
-        return thumbnail(obj.image, contain=True)
+        image = thumbnail(obj.image, contain=True, large=True)
+        if not obj.gallery_count:
+            return image
+        extra = badge(f'+{fa_number(obj.gallery_count)}', 'navy')
+        return format_html('<span class="sy-thumb-stack" title="تصاویر گالری">{}{}</span>', image, extra)
+
+    @admin.display(description='تصویر فعلی')
+    def image_preview(self, obj):
+        return image_preview(obj.image)
 
     @admin.display(description='قیمت', ordering='regular_price')
     def price(self, obj):

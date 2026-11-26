@@ -68,6 +68,7 @@ class ProductKindQueryTests(TestCase):
         cls.both = make_product('both', cls.pride, cls.tiba, sport=True)
         cls.accessory = make_product('accessory', cls.pride, accessory=True)
         cls.draft = make_product('draft', sport=True, status=Product.Status.DRAFT)
+        cls.plain = make_product('plain', cls.pride)
 
     def sport(self):
         return Product.objects.published().of_kind('sport')
@@ -75,6 +76,10 @@ class ProductKindQueryTests(TestCase):
     def test_kind_is_independent_of_car_models(self):
         self.assertCountEqual(self.sport(), [self.universal, self.pride_only, self.both])
         self.assertQuerySetEqual(Product.objects.published().of_kind('accessory'), [self.accessory])
+
+    def test_other_kind_is_neither_sport_nor_accessory(self):
+        make_product('sport-accessory', sport=True, accessory=True)
+        self.assertQuerySetEqual(Product.objects.published().of_kind('other'), [self.plain])
 
     def test_universal_parts_have_no_car_model(self):
         self.assertQuerySetEqual(self.sport().universal(), [self.universal])
@@ -187,6 +192,8 @@ class PartsBrowserPageTests(TestCase):
         make_product('p2', cls.pride, name='فنر اسپرت مخصوص', sport=True, regular_price=900, sale_price=300)
         make_product('p3', cls.pride, name='روکش صندلی مخصوص', accessory=True)
         make_product('p4', name='اگزوز پیش‌نویس', sport=True, status=Product.Status.DRAFT)
+        make_product('p5', name='لنت ترمز عمومی')
+        make_product('p6', cls.pride, name='تسمه تایم پراید')
 
     def names(self, response):
         return [product.name for product in response.context['page'].object_list]
@@ -214,6 +221,15 @@ class PartsBrowserPageTests(TestCase):
             ['فنر اسپرت مخصوص', 'اسپویلر عمومی'],
         )
         self.assertEqual(self.names(self.client.get(url, {'all': '1', 'on_sale': '1'})), ['فنر اسپرت مخصوص'])
+
+    def test_products_page_lists_what_is_neither_sport_nor_accessory(self):
+        url = reverse('catalog:products')
+        self.assertEqual(url, '/products/')
+        response = self.client.get(url)
+        self.assertEqual(self.names(response), ['لنت ترمز عمومی'])
+        self.assertEqual(response.context['title'], 'لوازم یدکی')
+        self.assertEqual(self.names(self.client.get(url, {'model': 'پراید'})), ['تسمه تایم پراید'])
+        self.assertCountEqual(self.names(self.client.get(url, {'all': '1'})), ['لنت ترمز عمومی', 'تسمه تایم پراید'])
 
     def test_unknown_car_model_is_404(self):
         self.assertEqual(self.client.get(reverse('catalog:sport'), {'model': 'nope'}).status_code, 404)

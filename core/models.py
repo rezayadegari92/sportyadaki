@@ -2,11 +2,13 @@ from decimal import Decimal
 
 from django.db import models
 
+from core.images import WebPImageField
+
 
 class SiteSettings(models.Model):
     """Single row (pk=1) with contact details shown across the site."""
 
-    logo = models.ImageField(
+    logo = WebPImageField(
         'لوگو', upload_to='site/', blank=True,
         help_text='PNG با پس‌زمینه واقعاً شفاف یا سفید (نه طرح شطرنجی)، حداقل ۱۲۰ پیکسل ارتفاع.',
     )
@@ -83,7 +85,7 @@ class HeroBanner(models.Model):
     )
     title = models.CharField('عنوان', max_length=200)
     subtitle = models.CharField('زیرعنوان', max_length=300, blank=True)
-    background_image = models.ImageField('تصویر پس‌زمینه', upload_to='banners/', blank=True)
+    background_image = WebPImageField('تصویر پس‌زمینه', upload_to='banners/', blank=True)
     # CharField rather than URLField so relative paths like /sport/ are allowed.
     primary_cta_label = models.CharField('متن دکمه اول', max_length=50, blank=True)
     primary_cta_url = models.CharField('لینک دکمه اول', max_length=500, blank=True)
@@ -115,7 +117,7 @@ class HeroBannerImage(models.Model):
     the HeroBanner; only the picture changes between slides."""
 
     banner = models.ForeignKey(HeroBanner, on_delete=models.CASCADE, related_name='extra_images', verbose_name='بنر')
-    image = models.ImageField('تصویر', upload_to='banners/')
+    image = WebPImageField('تصویر', upload_to='banners/')
     position = models.PositiveSmallIntegerField('ترتیب', default=0)
 
     class Meta:

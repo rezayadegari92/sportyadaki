@@ -6,6 +6,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
 
+from core.images import WebPImageField
+
 WORDS_PER_MINUTE = 200
 
 
@@ -48,7 +50,7 @@ class Article(models.Model):
     )
     excerpt = models.TextField('خلاصه', blank=True)
     body = models.TextField('متن')
-    featured_image = models.ImageField('تصویر شاخص', upload_to='articles/%Y/%m/', blank=True)
+    featured_image = WebPImageField('تصویر شاخص', upload_to='articles/%Y/%m/', blank=True)
     status = models.CharField('وضعیت', max_length=20, choices=Status, default=Status.DRAFT)
     published_at = models.DateTimeField('تاریخ انتشار', null=True, blank=True, db_index=True)
 

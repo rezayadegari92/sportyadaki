@@ -1,0 +1,16 @@
+{% extends "admin/base_site.html" %}
+{% load sporty %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">خانه</a> &rsaquo; <a href="{% url 'admin:convert_images' %}">تبدیل تصاویر به WebP</a> &rsaquo; تأیید</div>{% endblock %}
+{% block content %}
+<div class="module aligned" style="max-width: 40rem; padding: 1rem;">
+  <p>{{ stats.count|fa_number }} تصویر ({{ stats.size_label }}) به WebP تبدیل و در صورت نیاز کوچک می‌شود. فایل‌های اصلی پس از تبدیل موفق حذف می‌شوند و این کار برگشت‌پذیر نیست.</p>
+  <form method="post">{% csrf_token %}
+    <input type="hidden" name="step" value="run">
+    <p><label><input type="checkbox" name="keep_originals" value="1"> فایل‌های اصلی را نگه دار</label></p>
+    <div class="submit-row">
+      <input type="submit" class="default" value="بله، شروع کن">
+      <a href="{% url 'admin:convert_images' %}" class="closelink">انصراف</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

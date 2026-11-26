@@ -176,6 +176,30 @@ if not DEBUG:
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Uploads are converted to WebP (core/images.py). Per-field overrides are keyed "app.Model.field".
+IMAGE_WEBP_QUALITY = int(os.environ.get('IMAGE_WEBP_QUALITY', 80))
+IMAGE_MAX_WIDTH = int(os.environ.get('IMAGE_MAX_WIDTH', 1600))
+IMAGE_WEBP_FIELDS = {
+    'core.HeroBanner.background_image': {'max_width': 1920},
+    'core.HeroBannerImage.image': {'max_width': 1920},
+    'core.SiteSettings.logo': {'max_width': 800},
+    'catalog.CarBrand.image': {'max_width': 600},
+    'catalog.CarModel.image': {'max_width': 800},
+    'catalog.PartBrand.image': {'max_width': 600},
+}
+# Fields kept in their original format (none yet; e.g. an image used for link previews).
+IMAGE_WEBP_EXCLUDE = []
+
+# `default` is Django's per-process cache. `jobs` is on disk so every gunicorn worker sees the same
+# background job (the admin's WebP conversion progress, core/image_jobs.py).
+CACHES = {
+    'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'},
+    'jobs': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': BASE_DIR / '.cache' / 'jobs',
+    },
+}
+
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration

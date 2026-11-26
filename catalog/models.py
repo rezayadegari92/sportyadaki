@@ -7,6 +7,8 @@ from django.db.models import Avg, Case, Count, F, Q, When
 from django.urls import reverse
 from django.utils import timezone
 
+from core.images import WebPImageField
+
 
 class Term(models.Model):
     """Common shape of a WordPress taxonomy term."""
@@ -31,7 +33,7 @@ class ProductCategory(Term):
         related_name='children', verbose_name='دسته والد',
     )
     description = models.TextField('توضیحات', blank=True)
-    image = models.ImageField('تصویر', upload_to='categories/', blank=True)
+    image = WebPImageField('تصویر', upload_to='categories/', blank=True)
 
     class Meta(Term.Meta):
         verbose_name = 'دسته‌بندی محصول'
@@ -43,7 +45,7 @@ class CarBrand(Term):
 
     # WordPress had no field for this: the homepage logos were hardcoded HTML.
     # Nothing to import, so logos are uploaded here by hand.
-    image = models.ImageField('لوگو', upload_to='car-brands/', blank=True)
+    image = WebPImageField('لوگو', upload_to='car-brands/', blank=True)
     position = models.PositiveSmallIntegerField('ترتیب نمایش', default=0)
 
     class Meta(Term.Meta):
@@ -67,7 +69,7 @@ class CarModel(Term):
     )
     # ACF `car_model_image`: wp_termmeta stores the attachment id, not a URL.
     # return_format=url only changes what get_field() returns.
-    image = models.ImageField('عکس مدل خودرو', upload_to='car-models/', blank=True)
+    image = WebPImageField('عکس مدل خودرو', upload_to='car-models/', blank=True)
 
     class Meta(Term.Meta):
         verbose_name = 'مدل خودرو'
@@ -83,7 +85,7 @@ class CarModel(Term):
 class PartBrand(Term):
     """Part manufacturer — `pa_brands` (Bosch, NGK, Monroe...)."""
 
-    image = models.ImageField('لوگو', upload_to='part-brands/', blank=True)
+    image = WebPImageField('لوگو', upload_to='part-brands/', blank=True)
 
     class Meta(Term.Meta):
         verbose_name = 'برند قطعه'
@@ -205,7 +207,7 @@ class Product(models.Model):
     status = models.CharField('وضعیت', max_length=20, choices=Status, default=Status.DRAFT, db_index=True)
     short_description = models.TextField('توضیح کوتاه', blank=True)
     description = models.TextField('توضیحات', blank=True)
-    image = models.ImageField('تصویر شاخص', upload_to='products/%Y/%m/', blank=True)
+    image = WebPImageField('تصویر شاخص', upload_to='products/%Y/%m/', blank=True)
 
     sku = models.CharField('شناسه (SKU)', max_length=100, unique=True, null=True, blank=True)
     global_unique_id = models.CharField('GTIN / UPC / EAN / ISBN', max_length=100, blank=True)
@@ -302,7 +304,7 @@ class Product(models.Model):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='gallery', verbose_name='محصول')
-    image = models.ImageField('تصویر', upload_to='products/%Y/%m/')
+    image = WebPImageField('تصویر', upload_to='products/%Y/%m/')
     alt = models.CharField('متن جایگزین', max_length=255, blank=True)
     position = models.PositiveSmallIntegerField('ترتیب', default=0)
 

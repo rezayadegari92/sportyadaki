@@ -1,0 +1,24 @@
+{% extends "admin/base_site.html" %}
+{% load sporty %}
+{% block extrahead %}{{ block.super }}{% if running %}<meta http-equiv="refresh" content="3">{% endif %}{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">خانه</a> &rsaquo; {{ title }}</div>{% endblock %}
+{% block content %}
+<div class="module aligned" style="max-width: 40rem; padding: 1rem;">
+  {% if running %}
+    <p data-webp-running><strong>در حال تبدیل تصاویر…</strong></p>
+    <p>{{ job.done|fa_number }} از {{ job.total|fa_number }} تصویر انجام شد. این صفحه خودکار تازه می‌شود.</p>
+  {% else %}
+    <p>تصاویر غیر WebP: <strong>{{ stats.count|fa_number }}</strong></p>
+    <p>حجم کل: <strong>{{ stats.size_label }}</strong></p>
+    {% if stats.count %}
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="step" value="confirm">
+        <input type="submit" class="default" value="تبدیل همه‌ی تصاویر به WebP">
+      </form>
+    {% else %}
+      <p>همه‌ی تصاویر WebP هستند.</p>
+    {% endif %}
+  {% endif %}
+  <p><a href="{% url 'admin:index' %}">بازگشت به داشبورد</a></p>
+</div>
+{% endblock %}

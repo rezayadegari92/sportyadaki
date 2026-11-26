@@ -7,7 +7,7 @@ from datetime import timedelta
 
 from django.contrib import admin
 from django.contrib.admin.apps import AdminConfig
-from django.urls import reverse
+from django.urls import path, reverse
 from django.utils import timezone
 
 APP_ORDER = ['orders', 'payments', 'cart', 'catalog', 'articles', 'core', 'accounts', 'auth']
@@ -37,9 +37,23 @@ class SportyAdminSite(admin.AdminSite):
     def index(self, request, extra_context=None):
         return super().index(request, {'dashboard': dashboard(request), **(extra_context or {})})
 
+    def get_urls(self):
+        from .admin_images import convert_images_view
+
+        return [
+            path('convert-images/', self.admin_view(convert_images_view), name='convert_images'),
+            *super().get_urls(),
+        ]
+
 
 class SportyAdminConfig(AdminConfig):
     default_site = 'core.admin_site.SportyAdminSite'
+
+    def ready(self):
+        super().ready()  # autodiscover() registers every ModelAdmin
+        from .admin_images import install_action
+
+        install_action(self.module.site)  # «تبدیل تصاویر انتخاب‌شده به WebP» on every admin with images
 
 
 def dashboard(request):
@@ -105,4 +119,6 @@ def dashboard(request):
         ]
         if user.has_perm(perm)
     ]
+    if user.is_superuser:
+        actions.append({'label': 'تبدیل تصاویر به WebP', 'url': reverse('admin:convert_images'), 'icon': 'image'})
     return {'cards': cards, 'actions': actions, 'recent_orders': recent_orders}

@@ -398,7 +398,10 @@ a.chip:hover, a.chip:active { background: var(--accent); color: #fff; }
 .hero__dot { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / .45); cursor: pointer; transition: background-color var(--dur-2), width var(--dur-2); }
 .hero__dot:hover { background: rgb(255 255 255 / .7); }
 .hero__dot.is-active { width: 20px; border-radius: 4px; background: #fff; }
-.hero__content { width: 100%; max-width: 600px; padding: var(--space-5); }
+/* Positioned so it paints above .hero__slideshow, which is absolute and covers
+   the whole banner; left in normal flow, the buttons sat under that layer and
+   couldn't be clicked or hovered. Below the dots (z-index 2). */
+.hero__content { position: relative; z-index: 1; width: 100%; max-width: 600px; padding: var(--space-5); }
 .hero__title { font-size: 1.35rem; font-weight: 800; line-height: 1.5; }
 .hero--compact .hero__title { font-size: 1.2rem; }
 .hero__subtitle { margin-top: 6px; color: rgb(255 255 255 / .8); font-size: var(--text-sm); line-height: 1.8; }

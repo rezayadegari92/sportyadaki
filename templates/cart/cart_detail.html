@@ -14,7 +14,7 @@
         {% for item in items %}
           <article class="panel cart-item{% if item.pk in problem_item_ids %} cart-item--problem{% endif %}">
             <a class="cart-item__media" href="{{ item.product.get_absolute_url }}" tabindex="-1" aria-hidden="true">
-              {% if item.product.image %}<img src="{{ item.product.image.url }}" alt="" loading="lazy">{% else %}{% include "includes/placeholder.html" %}{% endif %}
+              {% if item.product.image %}<img {% image_src item.product.image 'cart' %} alt="" loading="lazy">{% else %}{% include "includes/placeholder.html" %}{% endif %}
             </a>
             <div class="cart-item__body">
               <a class="cart-item__title" href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>

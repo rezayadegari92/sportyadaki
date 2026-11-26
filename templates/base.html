@@ -25,7 +25,7 @@
     <div class="container site-header__bar">
       <a class="logo" href="{% url 'core:home' %}">
         {% if site_settings.logo %}
-          <img class="logo__img" src="{{ site_settings.logo.url }}" alt="اسپرت یدکی">
+          <img class="logo__img" {% image_src site_settings.logo 'logo' %} alt="اسپرت یدکی">
         {% else %}
           <span class="logo__mark" aria-hidden="true">SY</span>
           <span>اسپرت یدکی</span>

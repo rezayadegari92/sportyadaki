@@ -2,7 +2,7 @@
   <details{% if selected_model and selected_model in models %} open{% endif %}>
     <summary>
       {% if image %}
-        <img src="{{ image.url }}" alt="" loading="lazy">
+        <img {% image_src image 'icon' %} alt="" loading="lazy">
       {% else %}
         <span class="brand-dot" aria-hidden="true">{{ name|first }}</span>
       {% endif %}

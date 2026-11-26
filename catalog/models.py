@@ -207,7 +207,10 @@ class Product(models.Model):
     status = models.CharField('وضعیت', max_length=20, choices=Status, default=Status.DRAFT, db_index=True)
     short_description = models.TextField('توضیح کوتاه', blank=True)
     description = models.TextField('توضیحات', blank=True)
-    image = WebPImageField('تصویر شاخص', upload_to='products/%Y/%m/', blank=True)
+    image = WebPImageField(
+        'تصویر شاخص', upload_to='products/%Y/%m/', blank=True,
+        help_text='اگر خالی بماند، اولین تصویر گالری به‌عنوان تصویر شاخص استفاده می‌شود.',
+    )
 
     sku = models.CharField('شناسه (SKU)', max_length=100, unique=True, null=True, blank=True)
     global_unique_id = models.CharField('GTIN / UPC / EAN / ISBN', max_length=100, blank=True)
@@ -273,7 +276,14 @@ class Product(models.Model):
         # Blank SKUs are stored as NULL so they don't collide on the unique index.
         if not self.sku:
             self.sku = None
+        if not self.image and self.pk:
+            self.image = self.first_gallery_image()
         super().save(*args, **kwargs)
+
+    def first_gallery_image(self):
+        """Name of the first gallery photo, '' when there is none: the main image of a product that has
+        only gallery photos, so cards, the product page and the admin list never show a placeholder."""
+        return self.gallery.order_by('position', 'pk').values_list('image', flat=True).first() or ''
 
     @property
     def is_on_sale(self):
@@ -307,6 +317,11 @@ class ProductImage(models.Model):
     image = WebPImageField('تصویر', upload_to='products/%Y/%m/')
     alt = models.CharField('متن جایگزین', max_length=255, blank=True)
     position = models.PositiveSmallIntegerField('ترتیب', default=0)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # A product without a main image takes its first gallery photo (see Product.first_gallery_image).
+        Product.objects.filter(pk=self.product_id, image='').update(image=self.image.name)
 
     class Meta:
         ordering = ['position', 'pk']

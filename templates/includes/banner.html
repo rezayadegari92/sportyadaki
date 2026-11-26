@@ -1,10 +1,10 @@
-{% with images=banner.slideshow_images %}
+{% load sporty %}{% with images=banner.slideshow_images %}
 <section class="hero hero--text-{{ banner.content_side }}{% if images %} hero--image{% endif %}{% if compact %} hero--compact{% endif %}" aria-label="{{ banner.title }}"{% if reveal %} data-reveal{% endif %}>
   {% if images|length > 1 %}
     {# Multiple images: auto-advancing slideshow (static.js) with dot controls; first slide shows without JS. #}
     <div class="hero__slideshow" data-slideshow>
       {% for image in images %}
-        <img src="{{ image.url }}" alt=""{% if forloop.first %} class="is-active"{% if priority %} fetchpriority="high"{% endif %}{% else %} loading="lazy"{% endif %}>
+        <img {% image_src image 'hero' %} alt=""{% if forloop.first %} class="is-active"{% if priority %} fetchpriority="high"{% endif %}{% else %} loading="lazy"{% endif %}>
       {% endfor %}
       <div class="hero__dots" role="tablist" aria-label="تصاویر بنر">
         {% for image in images %}
@@ -13,7 +13,7 @@
       </div>
     </div>
   {% elif images %}
-    <img class="hero__img" src="{{ images.0.url }}" alt="" data-fade{% if priority %} fetchpriority="high"{% else %} loading="lazy"{% endif %}>
+    <img class="hero__img" {% image_src images.0 'hero' %} alt="" data-fade{% if priority %} fetchpriority="high"{% else %} loading="lazy"{% endif %}>
   {% endif %}
   <div class="hero__content">
     <h2 class="hero__title">{{ banner.title }}</h2>

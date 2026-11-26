@@ -3,6 +3,7 @@ from django.utils.html import format_html
 
 from .templatetags.sporty import fa_decimal, fa_number
 from .text import to_persian_digits
+from .thumbnails import thumbnail_url
 
 ORDER_STATUS_TONES = {
     'pending': 'gray', 'paid': 'navy', 'processing': 'blue', 'shipped': 'orange',
@@ -17,7 +18,8 @@ def thumbnail(image, *, contain=False, wide=False, large=False):
     )
     if not image:
         return format_html('<span class="{} sy-thumb--empty"></span>', classes)
-    return format_html('<img class="{}" src="{}" alt="" loading="lazy">', classes, image.url)
+    # Thumbnails are at most 92px wide: a 200px copy instead of the full upload (core/thumbnails.py).
+    return format_html('<img class="{}" src="{}" alt="" loading="lazy">', classes, thumbnail_url(image, 200))
 
 
 def image_preview(image):
@@ -25,8 +27,8 @@ def image_preview(image):
     if not image:
         return format_html('<span class="sy-muted">{}</span>', 'هنوز تصویری بارگذاری نشده است.')
     return format_html(
-        '<a href="{0}" target="_blank" rel="noopener"><img class="sy-preview" src="{0}" alt="" loading="lazy"></a>',
-        image.url,
+        '<a href="{}" target="_blank" rel="noopener"><img class="sy-preview" src="{}" alt="" loading="lazy"></a>',
+        image.url, thumbnail_url(image, 520),
     )
 
 

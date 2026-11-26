@@ -22,7 +22,7 @@
            href="{% url 'catalog:car_model' brand.slug car_model.slug %}">
           <div class="model-card__media">
             {% if car_model.image %}
-              <img src="{{ car_model.image.url }}" alt="" loading="lazy">
+              <img {% image_src car_model.image 'model' %} alt="" loading="lazy">
             {% else %}
               {% include "includes/car_placeholder.html" %}
             {% endif %}

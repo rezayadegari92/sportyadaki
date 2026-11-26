@@ -1,7 +1,7 @@
 {% load sporty %}<a class="card article-card" href="{{ article.get_absolute_url }}">
   <div class="article-card__media media">
     {% if article.featured_image %}
-      <img src="{{ article.featured_image.url }}" alt="" loading="lazy" data-fade>
+      <img {% image_src article.featured_image 'article_card' %} alt="" loading="lazy" data-fade>
     {% else %}
       {% include "includes/placeholder.html" %}
     {% endif %}

@@ -107,6 +107,9 @@ class ConverterTests(TestCase):
 @override_settings(IMAGE_MAX_WIDTH=1600, CACHES=TEST_CACHES)
 class MediaTestCase(TestCase):
     def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()  # remembered thumbnails point into another test's MEDIA_ROOT
         self.media = tempfile.mkdtemp()
         patcher = override_settings(MEDIA_ROOT=self.media)
         patcher.enable()
@@ -302,3 +305,89 @@ class AdminTests(MediaTestCase):
         for model in (Product, ProductCategory, CarBrand, HeroBanner, SiteSettings, Article):
             with self.subTest(model=model.__name__):
                 self.assertIn(convert_selected_images, admin.site._registry[model].actions)
+
+
+class ThumbnailTests(MediaTestCase):
+    def stored(self, name='products/2026/11/big.webp', size=(1600, 800), fmt='WEBP'):
+        return self.storage.save(name, ContentFile(make(fmt, size=size).read()))
+
+    def test_srcset_uses_small_copies(self):
+        from .thumbnails import image_attrs
+
+        product = Product.objects.create(name='لنت', slug='lent', image=self.stored())
+        attrs = str(image_attrs(product.image, 'card'))
+        self.assertIn('320w', attrs)
+        self.assertIn('640w', attrs)
+        self.assertIn('sizes="(min-width: 600px) 260px, 50vw"', attrs)
+        self.assertNotIn(product.image.url, attrs)  # the 1600px upload itself is never sent
+        copies = self.storage.listdir('cache/thumbs/320')[1]
+        self.assertEqual(len(copies), 1)
+        self.assertEqual(Image.open(self.storage.path(f'cache/thumbs/320/{copies[0]}')).width, 320)
+
+    def test_small_webp_is_served_as_is(self):
+        from .thumbnails import image_attrs
+
+        product = Product.objects.create(name='لنت', slug='lent', image=self.stored(size=(200, 100)))
+        attrs = str(image_attrs(product.image, 'card'))
+        self.assertIn(f'src="{product.image.url}"', attrs)
+        self.assertIn('200w', attrs)
+        self.assertFalse(self.storage.exists('cache/thumbs'))
+
+    def test_copies_are_reused_and_remembered(self):
+        from .thumbnails import thumbnail
+
+        product = Product.objects.create(name='لنت', slug='lent', image=self.stored())
+        first = thumbnail(product.image, 320)
+        with mock.patch('core.thumbnails.convert_to_webp') as convert:
+            self.assertEqual(thumbnail(product.image, 320), first)
+            from django.core.cache import cache
+
+            cache.clear()  # e.g. after a restart: the file on disk is found again, nothing is rebuilt
+            self.assertEqual(thumbnail(product.image, 320), first)
+        convert.assert_not_called()
+
+    def test_missing_file_falls_back_to_its_url(self):
+        from .thumbnails import image_attrs, thumbnail_url
+
+        product = Product(name='لنت', slug='lent', image='products/gone.jpg')
+        self.assertEqual(str(image_attrs(product.image, 'card')), f'src="{product.image.url}"')
+        self.assertEqual(thumbnail_url(product.image, 200), product.image.url)
+
+    def test_pages_use_the_copies(self):
+        product = Product.objects.create(name='لنت', slug='lent', status='publish', image=self.stored())
+        ProductImage.objects.create(product=product, image=self.stored('products/2026/11/g.png', fmt='PNG'))
+        page = self.client.get(product.get_absolute_url()).content.decode()
+        self.assertIn('/media/cache/thumbs/640/', page)
+        self.assertIn('/media/cache/thumbs/160/', page)
+
+
+class MainImageFromGalleryTests(MediaTestCase):
+    def test_first_gallery_photo_becomes_the_main_image(self):
+        product = Product.objects.create(name='لنت', slug='lent')
+        first = ProductImage.objects.create(product=product, image=SimpleUploadedFile('a.png', make().read()))
+        ProductImage.objects.create(product=product, image=SimpleUploadedFile('b.png', make().read()))
+        product.refresh_from_db()
+        self.assertEqual(product.image.name, first.image.name)
+
+    def test_an_existing_main_image_is_kept(self):
+        product = Product.objects.create(name='لنت', slug='lent', image=SimpleUploadedFile('m.png', make().read()))
+        main = product.image.name
+        ProductImage.objects.create(product=product, image=SimpleUploadedFile('a.png', make().read()))
+        product.refresh_from_db()
+        self.assertEqual(product.image.name, main)
+
+    def test_clearing_the_main_image_falls_back_to_the_gallery(self):
+        product = Product.objects.create(name='لنت', slug='lent', image=SimpleUploadedFile('m.png', make().read()))
+        photo = ProductImage.objects.create(product=product, image=SimpleUploadedFile('a.png', make().read()),
+                                            position=1)
+        product.image = ''
+        product.save()
+        self.assertEqual(product.image.name, photo.image.name)
+
+    def test_admin_list_shows_the_photo_for_a_gallery_only_product(self):
+        admin_user = get_user_model().objects.create_superuser('admin', 'admin@example.com', 'x')
+        self.client.force_login(admin_user)
+        product = Product.objects.create(name='لنت', slug='lent')
+        ProductImage.objects.create(product=product, image=SimpleUploadedFile('a.png', make(size=(900, 600)).read()))
+        page = self.client.get(reverse('admin:catalog_product_changelist')).content.decode()
+        self.assertIn('/media/cache/thumbs/200/', page)

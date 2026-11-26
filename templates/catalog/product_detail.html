@@ -11,7 +11,7 @@
     <div class="product-detail__media">
       <div class="product-detail__image">
         {% if product.image %}
-          <img src="{{ product.image.url }}" alt="{{ product.name }}">
+          <img {% image_src product.image 'detail' %} alt="{{ product.name }}" fetchpriority="high">
         {% else %}
           {% include "includes/placeholder.html" %}
         {% endif %}
@@ -19,7 +19,7 @@
       {% with images=product.gallery.all %}{% if images %}
       <div class="gallery">
         {% for item in images %}
-          <a href="{{ item.image.url }}"><img src="{{ item.image.url }}" alt="{{ item.alt }}" loading="lazy"></a>
+          <a href="{{ item.image.url }}"><img {% image_src item.image 'gallery' %} alt="{{ item.alt }}" loading="lazy"></a>
         {% endfor %}
       </div>
       {% endif %}{% endwith %}

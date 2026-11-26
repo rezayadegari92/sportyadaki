@@ -1,6 +1,7 @@
 from django import template
 
 from core.text import to_persian_digits
+from core.thumbnails import image_attrs
 
 register = template.Library()
 
@@ -34,3 +35,10 @@ def fa_decimal(value):
 def rating_percent(value):
     """Star fill width for a 0–5 rating, as a plain (unlocalized) string for CSS."""
     return f'{max(0.0, min(100.0, float(value or 0) * 20)):.1f}'
+
+
+@register.simple_tag
+def image_src(file, preset):
+    """`src`/`srcset`/`sizes` for an uploaded image, using small WebP copies (core/thumbnails.py):
+    <img {% image_src product.image 'card' %} alt="" loading="lazy">"""
+    return image_attrs(file, preset)

@@ -15,7 +15,7 @@
     <h1 class="article-detail__title">{{ article.title }}</h1>
     <p class="meta">{{ article.read_time_minutes|fa_digits }} دقیقه مطالعه</p>
     {% if article.featured_image %}
-      <img class="article-detail__cover" src="{{ article.featured_image.url }}" alt="">
+      <img class="article-detail__cover" {% image_src article.featured_image 'article_cover' %} alt="">
     {% endif %}
     {# Article HTML is written by staff in the admin (or imported from WordPress). #}
     <div class="prose">{{ article.body|safe }}</div>
